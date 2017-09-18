@@ -28,7 +28,7 @@ namespace libgitface.ActionProviders
 
 				var infos = await Task.WhenAll (modules.Select (GetCurrentHashAndBranchTip));
 				var requiresUpdate =  infos.Where (t => t.CurrentHash != t.BranchTip).ToArray ();
-				Actions = requiresUpdate.Select (t => new BumpSubmoduleAction (Repository, t)).ToArray ();
+				Actions = requiresUpdate.Select (info => new BumpSubmoduleAction (CreateClient (), Repository, Branch, info)).ToArray ();
 			} catch (Octokit.NotFoundException) {
 				// This does not have submodules
 			} catch (Exception ex) {
