@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System;
 using System.Threading;
 
 using AppKit;
@@ -39,14 +40,11 @@ namespace GityMcGitface
 			get;
 		}
 
-		GitHubClient Client {
-			get;
-		}
-
 		ProductHeaderValue Product => new ProductHeaderValue ("gity-mc-gitface");
 
 		libgitface.Repository[] Repositories => new [] {
-			new libgitface.Repository ("alanmcgovern", "gitymcgitface")
+			//new libgitface.Repository (new Uri ("https://github.com/alanmcgovern/gitymcgitface")),
+			new libgitface.Repository (new Uri ("https://github.com/alanmcgovern/designer"))
 		};
 
 		string[] Usernames => new [] {
@@ -58,16 +56,18 @@ namespace GityMcGitface
 			NSStatusBar bar = NSStatusBar.SystemStatusBar;
 			NSStatusItem statusItem = bar.CreateStatusItem (NSStatusItemLength.Square);
 			ActionCentre = new ApplicationIconActionCenter (statusItem, SynchronizationContext.Current);
-
-			Client = new GitHubClient (Product) {
-				Credentials = new Credentials (Secrets.GithubToken)
-			};
 		}
 
 		public override void DidFinishLaunching(NSNotification notification)
 		{
-			foreach (var repository in Repositories)
-				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (Client, repository, CancellationToken.None, Usernames));
+			Func<GitHubClient> clientFactory = () => new GitHubClient (Product) {
+				Credentials = new Credentials (Secrets.GithubToken)
+			};
+
+			foreach (var repository in Repositories) {
+				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (clientFactory, repository, CancellationToken.None, Usernames));
+				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (clientFactory, repository, "master"));
+			}
 			ActionCentre.Refresh ();
 		}
 

@@ -29,7 +29,7 @@ using Octokit;
 
 namespace libgitface.ActionProviders
 {
-	public class ReviewPullRequestActionProvider : ActionProvider
+	public class ReviewPullRequestActionProvider : GitHubActionProvider
 	{
 		class PullRequestComparer : IEqualityComparer<PullRequest>
 		{
@@ -41,15 +41,7 @@ namespace libgitface.ActionProviders
 			get;
 		}
 
-		GitHubClient Client {
-			get;
-		}
-
 		Dictionary<PullRequest, IAction> PullRequests {
-			get;
-		}
-
-		libgitface.Repository Repository {
 			get;
 		}
 
@@ -57,13 +49,14 @@ namespace libgitface.ActionProviders
 			get;
 		}
 
-		public ReviewPullRequestActionProvider (GitHubClient client, Repository repo, CancellationToken token)
+		public ReviewPullRequestActionProvider (Func<GitHubClient> client, Repository repo, CancellationToken token)
 			: this (client, repo, token, Enumerable.Empty<string> ())
 		{
 
 		}
 
-		public ReviewPullRequestActionProvider (GitHubClient client, Repository repo, CancellationToken token, IEnumerable<string> usernames)
+		public ReviewPullRequestActionProvider (Func<GitHubClient> client, Repository repo, CancellationToken token, IEnumerable<string> usernames)
+			: base (client, repo)
 		{
 			if (client == null)
 				throw new ArgumentNullException (nameof (client));
@@ -72,16 +65,14 @@ namespace libgitface.ActionProviders
 			if (usernames == null)
 				throw new ArgumentNullException (nameof (usernames));
 
-			Client = client;
 			PullRequests = new Dictionary<PullRequest, IAction> (new PullRequestComparer ());
-			Repository = repo;
 			Usernames = usernames.ToArray ();
 		}
 
 		public async override void Refresh ()
 		{
 			try {
-				var prs = await Client.PullRequest.GetAllForRepository (Repository.Owner, Repository.Name);
+				var prs = await CreateClient ().PullRequest.GetAllForRepository (Repository.Owner, Repository.Name);
 				foreach (var pr in prs)
 					HandlePullRequest (pr);
 			} catch (Exception ex) {

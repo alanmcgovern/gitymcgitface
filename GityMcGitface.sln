@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GityMcGitface", "GityMcGitf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libgitface", "libgitface\libgitface.csproj", "{39E66D66-CDCF-4363-A4F8-FEA8CF000671}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libgitface-tests", "libgitface-tests\libgitface-tests.csproj", "{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -19,5 +21,9 @@ Global
 		{39E66D66-CDCF-4363-A4F8-FEA8CF000671}.Debug|x86.Build.0 = Debug|Any CPU
 		{39E66D66-CDCF-4363-A4F8-FEA8CF000671}.Release|x86.ActiveCfg = Release|Any CPU
 		{39E66D66-CDCF-4363-A4F8-FEA8CF000671}.Release|x86.Build.0 = Release|Any CPU
+		{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}.Debug|x86.Build.0 = Debug|Any CPU
+		{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}.Release|x86.ActiveCfg = Release|Any CPU
+		{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -34,10 +34,26 @@ namespace libgitface
 			get;
 		}
 
-		public Repository (string owner, string name)
+		public Uri Uri {
+			get;
+		}
+
+		public Repository (Uri uri)
+			: this (uri, null)
 		{
-			Owner = owner;
-			Name = name;
+
+		}
+
+		public Repository (Uri baseUri, string relativeUri)
+		{
+			if (relativeUri == null)
+				Uri = baseUri;
+			else
+				Uri = new Uri (baseUri, relativeUri);
+
+			var parts = Uri.PathAndQuery.Split (new [] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+			Owner = parts [0];
+			Name = parts [1];
 		}
 	}
 }
