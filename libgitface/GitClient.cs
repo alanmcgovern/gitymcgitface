@@ -57,7 +57,7 @@ namespace libgitface
 				var branchRef = "refs/heads/" + branchName;
 				await CreateClient ().Git.Reference.Get (Repository.Owner, Repository.Name, branchRef);
 				return true;
-			} catch (Octokit.NotFoundException) {
+			} catch (NotFoundException) {
 				return false;
 			}
 		}

@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System;
+using System.Threading.Tasks;
 
 namespace libgitface.ActionProviders
 {
@@ -32,7 +33,7 @@ namespace libgitface.ActionProviders
 
 		public IAction[] Actions {
 			get { return actions ?? Array.Empty<IAction> (); }
-			set {
+			private set {
 				actions = value;
 				StatusChanged?.Invoke (this, EventArgs.Empty);
 			}
@@ -42,6 +43,18 @@ namespace libgitface.ActionProviders
 		{
 		}
 
-		public abstract void Refresh ();
+		public async void Refresh ()
+		{
+			try {
+				Actions = await RefreshActions ();
+			} catch (Exception ex) {
+				Log.Exception ($"An exception occurred refreshing '{GetType ().Name}'.", ex);
+			}
+		}
+
+		protected virtual Task<IAction[]> RefreshActions ()
+		{
+			return Task.FromResult (Array.Empty<IAction> ());
+		}
 	}
 }

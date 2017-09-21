@@ -24,27 +24,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Octokit;
 
 namespace libgitface.ActionProviders
 {
 	public class ReviewPullRequestActionProvider : GitActionProvider
 	{
-		class PullRequestComparer : IEqualityComparer<PullRequest>
-		{
-			public bool Equals (PullRequest x, PullRequest y) => x?.Id == y?.Id;
-			public int GetHashCode (PullRequest obj)          => obj?.Id.GetHashCode () ?? 0;
-		}
-
-		IObservable<PullRequest> Created {
-			get;
-		}
-
-		Dictionary<PullRequest, IAction> PullRequests {
-			get;
-		}
-
 		string[] Usernames {
 			get;
 		}
@@ -63,41 +49,26 @@ namespace libgitface.ActionProviders
 			if (usernames == null)
 				throw new ArgumentNullException (nameof (usernames));
 
-			PullRequests = new Dictionary<PullRequest, IAction> (new PullRequestComparer ());
 			Usernames = usernames.ToArray ();
 		}
 
-		public async override void Refresh ()
+		protected override async Task<IAction[]> RefreshActions()
 		{
-			try {
-				var prs = await Client.GetPullRequests ();
-				foreach (var pr in prs)
-					HandlePullRequest (pr);
-			} catch (Exception ex) {
-				Console.WriteLine (ex);
+			var prs = await Client.GetPullRequests ();
+			var actions = new List<IAction> ();
+			foreach (var pr in prs.OrderBy (p => p.Id)) {
+				if (Usernames.Length > 0 && !Usernames.Contains (pr.User.Login))
+					continue;
+
+				if (pr.State == ItemState.Open) {
+					actions.Add (new OpenUrlAction {
+						Url = pr.HtmlUrl.OriginalString,
+						ShortDescription = $"Review {pr.Title}",
+						Tooltip = $"Review pull request in {Client.Repository.Label}, created by {pr.User.Login}"
+					});
+				}
 			}
-
-		}
-		void HandlePullRequest (PullRequest pr)
-		{
-			if (Usernames.Length > 0 && !Usernames.Contains (pr.User.Login))
-				return;
-
-			if (pr.State == ItemState.Open) {
-				if (PullRequests.ContainsKey (pr))
-					return;
-
-				PullRequests.Add (pr, new OpenUrlAction {
-					Url = pr.HtmlUrl.OriginalString,
-					ShortDescription = $"Review {pr.Title}",
-					Tooltip = $"Review pull request in {Client.Repository.Label}, created by {pr.User.Login}"
-				});
-			} else {
-				if (!PullRequests.Remove (pr))
-					return;
-			}
-
-			Actions = PullRequests.Values.ToArray ();
+			return actions.ToArray ();
 		}
 	}
 }

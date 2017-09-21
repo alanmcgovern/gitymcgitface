@@ -14,8 +14,7 @@ namespace libgitface.ActionProviders
 		{
 
 		}
-
-		public override async void Refresh ()
+		protected override async Task<IAction[]> RefreshActions()
 		{
 			try {
 				var parser = new GitModulesParser ();
@@ -24,11 +23,9 @@ namespace libgitface.ActionProviders
 
 				var infos = await Task.WhenAll (modules.Select (GetCurrentHashAndBranchTip));
 				var requiresUpdate = infos.Where (t => t.HeadSha != t.CurrentSha).ToArray ();
-				Actions = new [] { new CreateSubmoduleBumpPRAction (Client, requiresUpdate) };
+				return new [] { new CreateSubmoduleBumpPRAction (Client, requiresUpdate) };
 			} catch (Octokit.NotFoundException) {
-				// This does not have submodules
-			} catch (Exception ex) {
-				Log.Exception ("SubmoduleAnalyzer failed", ex);
+				return null;
 			}
 		}
 
