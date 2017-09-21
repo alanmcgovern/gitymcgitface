@@ -65,9 +65,9 @@ namespace GityMcGitface
 				Credentials = new Credentials (Secrets.GithubToken)
 			};
 
+			var baseClient = new GitClient (gitHubClientFactory);
 			foreach (var repository in Repositories) {
-				var client = new GitClient (gitHubClientFactory)
-					.WithRepository (repository);
+				var client = baseClient.WithRepository (repository);
 
 				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (client, CancellationToken.None, Usernames));
 				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (client));

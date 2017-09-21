@@ -27,6 +27,10 @@ namespace libgitface
 {
 	public class OpenUrlAction : IAction
 	{
+		public string[] Grouping {
+			get;
+		}
+
 		public string ShortDescription {
 			get; set;
 		}
@@ -37,6 +41,11 @@ namespace libgitface
 
 		public string Tooltip {
 			get; set;
+		}
+
+		public OpenUrlAction (params string[] grouping)
+		{
+			Grouping = grouping;
 		}
 
 		public void Execute ()

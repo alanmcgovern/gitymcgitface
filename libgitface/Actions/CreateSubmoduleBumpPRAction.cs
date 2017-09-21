@@ -10,13 +10,16 @@ namespace libgitface
 	{
 		GitClient Client { get; }
 		SubmoduleInformation[] Submodules { get; }
+
+		public string[] Grouping { get; }
 		public string ShortDescription => $"Bump {Submodules.Length} submodules";
 		public string Tooltip => CreateTitleText ();
 
-		public CreateSubmoduleBumpPRAction (GitClient client, SubmoduleInformation[] submodules)
+		public CreateSubmoduleBumpPRAction (GitClient client, SubmoduleInformation[] submodules, params string[] grouping)
 		{
 			Client = client;
 			Submodules = submodules;
+			Grouping = grouping;
 		}
 
 		public async void Execute()

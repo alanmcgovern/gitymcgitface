@@ -26,7 +26,7 @@ namespace libgitface
 {
 	public interface IAction
 	{
-		//string[] Grouping { get; set; }
+		string[] Grouping { get; }
 		string ShortDescription { get; }
 		string Tooltip { get; }
 		void Execute ();

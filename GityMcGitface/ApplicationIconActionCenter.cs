@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using AppKit;
@@ -53,15 +55,53 @@ namespace GityMcGitface
 
 		NSMenu CreateMenu (IAction[] actions)
 		{
-			var menu = new NSMenu ();
-			foreach (var action in actions) {
-				var menuItem = new NSMenuItem (action.ShortDescription);
-				menuItem.ToolTip = action.Tooltip;
-				menuItem.Activated += (sender, e) => action.Execute ();
-				menu.AddItem (menuItem);
+			return new NSMenu {
+				Delegate = new ActionMenuDelegate (actions, 0)
+			};
+		}
+
+		class ActionMenuDelegate : NSMenuDelegate
+		{
+			int Depth {
+				get;
 			}
 
-			return menu;
+			IGrouping<string[], IAction>[] Grouping {
+				get;
+			}
+
+			public ActionMenuDelegate (IAction[] actions, int depth)
+			{
+				Depth = depth;
+				Grouping = actions.GroupBy (t => t.Grouping.Skip (depth).ToArray (), Groupings.GroupingComparer).OrderBy (g => g.Key.FirstOrDefault ()).ToArray ();
+			}
+
+			public override void NeedsUpdate (NSMenu menu)
+			{
+				menu.RemoveAllItems ();
+				foreach (var group in Grouping) {
+					if (group.Key.Length == 0) {
+						foreach (var action in group) {
+							var menuItem = new NSMenuItem (action.ShortDescription);
+							menuItem.ToolTip = action.Tooltip;
+							menuItem.Activated += (sender, e) => action.Execute ();
+							menu.AddItem (menuItem);
+						}
+					} else {
+						var subMenu = new NSMenu {
+							Delegate = new ActionMenuDelegate (group.ToArray (), Depth + 1)
+						};
+						var submenuItem = new NSMenuItem (group.Key.FirstOrDefault () ?? "Misc");
+						menu.SetSubmenu (subMenu, submenuItem);
+						menu.AddItem (submenuItem);
+					}
+				}
+			}
+
+			public override void MenuWillHighlightItem(NSMenu menu, NSMenuItem item)
+			{
+				// No-op
+			}
 		}
 	}
 }

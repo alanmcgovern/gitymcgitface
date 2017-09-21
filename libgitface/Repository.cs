@@ -48,5 +48,10 @@ namespace libgitface
 			Owner = parts [0];
 			Name = parts [1];
 		}
+
+		public override string ToString()
+		{
+			return string.Format("Repository: {0}", Label);
+		}
 	}
 }
