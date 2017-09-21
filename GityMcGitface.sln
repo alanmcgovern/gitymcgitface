@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GityMcGitface", "GityMcGitface\GityMcGitface.csproj", "{112D9DB1-2B94-4398-8703-6BB558DCB904}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04Fasdasdasd79EFBC}") = "GityMcGitface", "GityMcGitface\GityMcGitface.csproj", "{112D9DB1-2B94-4398-8703-6BB558DCB904}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libgitface", "libgitface\libgitface.csproj", "{39E66D66-CDCF-4363-A4F8-FEA8CF000671}"
 EndProject
