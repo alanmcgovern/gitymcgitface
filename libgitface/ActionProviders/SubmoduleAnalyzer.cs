@@ -7,28 +7,24 @@ using Octokit;
 
 namespace libgitface.ActionProviders
 {
-	public class SubmoduleAnalyzer : GitHubActionProvider
+	public class SubmoduleAnalyzer : GitActionProvider
 	{
-		public string Branch {
-			get;
-		}
-
-		public SubmoduleAnalyzer (Func<GitHubClient> client, Repository repository, string branch)
-			: base (client, repository)
+		public SubmoduleAnalyzer (GitClient client)
+			: base (client)
 		{
-			Branch = string.IsNullOrEmpty (branch) ? "master" : branch;
+
 		}
 
 		public override async void Refresh ()
 		{
 			try {
 				var parser = new GitModulesParser ();
-				var gitModulesContent = await GetFileContent (".gitmodules", Branch);
+				var gitModulesContent = await Client.GetFileContent (".gitmodules");
 				var modules = parser.Parse (gitModulesContent);
 
 				var infos = await Task.WhenAll (modules.Select (GetCurrentHashAndBranchTip));
-				var requiresUpdate =  infos.Where (t => t.CurrentHash != t.BranchTip).ToArray ();
-				Actions = requiresUpdate.Select (info => new BumpSubmoduleAction (CreateClient (), Repository, Branch, info)).ToArray ();
+				var requiresUpdate = infos.Where (t => t.HeadSha != t.CurrentSha).ToArray ();
+				Actions = new [] { new CreateSubmoduleBumpPRAction (Client, requiresUpdate) };
 			} catch (Octokit.NotFoundException) {
 				// This does not have submodules
 			} catch (Exception ex) {
@@ -38,13 +34,13 @@ namespace libgitface.ActionProviders
 
 		async Task<SubmoduleInformation> GetCurrentHashAndBranchTip (SubmoduleEntry entry)
 		{
-			var submoduleRepository = new Repository (Repository.Uri, entry.Url);
-			var currentSubmoduleHashTask = CreateClient ().Repository.Content.GetAllContentsByRef (Repository.Owner, Repository.Name, entry.Path, Branch);
-			var headCommitOfRepositoryTask = CreateClient ().Git.Tree.Get (submoduleRepository.Owner, submoduleRepository.Name, entry.Branch);
+			var submodule = Client
+				.WithRepository (new Repository (Client.Repository.Uri, entry.Url))
+				.WithBranch (entry.Branch);
 
-			var currentSubmoduleHash = await currentSubmoduleHashTask.ConfigureAwait (false);
-			var headCommitOfRepository = await headCommitOfRepositoryTask.ConfigureAwait (false);
-			return new SubmoduleInformation (submoduleRepository, entry.Path, currentSubmoduleHash [0].Sha, headCommitOfRepository.Sha);
+			var currentSubmoduleSha = await Client.GetSubmoduleSha (entry);
+			var headShaOfTrackedBranch = await submodule.GetHeadSha ();
+			return new SubmoduleInformation (submodule.Repository, entry.Path, currentSubmoduleSha, headShaOfTrackedBranch);
 		}
 	}
 }

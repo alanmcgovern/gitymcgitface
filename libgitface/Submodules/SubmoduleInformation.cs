@@ -3,33 +3,22 @@ namespace libgitface
 {
 	public sealed class SubmoduleInformation
 	{
-		public string BranchTip {
-			get;
-		}
+		public string CurrentSha { get; }
+		public string HeadSha { get; }
+		public string Path { get; }
+		public Repository Repository { get; }
 
-		public string CurrentHash {
-			get;
-		}
-
-		public string Path {
-			get;
-		}
-
-		public Repository Repository {
-			get;
-		}
-
-		public SubmoduleInformation (Repository repository, string path, string currentHash, string branchTip)
+		public SubmoduleInformation (Repository repository, string path, string currentSha, string headSha)
 		{
 			Repository = repository;
 			Path = path;
-			CurrentHash = currentHash;
-			BranchTip = branchTip;
+			CurrentSha = currentSha;
+			HeadSha = headSha;
 		}
 
 		public override string ToString()
 		{
-			return string.Format("[SubmoduleInformation: BranchTip={0}, CurrentHash={1}, Path={2}]", BranchTip, CurrentHash, Path);
+			return string.Format("[SubmoduleInformation: CurrentSha={0}, HeadSha={1}, Path={2}]", CurrentSha, HeadSha, Path);
 		}
 	}
 }

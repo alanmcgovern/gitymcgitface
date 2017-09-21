@@ -27,37 +27,18 @@ using Octokit;
 
 namespace libgitface.ActionProviders
 {
-	public abstract class GitHubActionProvider : ActionProvider
+	public abstract class GitActionProvider : ActionProvider
 	{
-		Func<GitHubClient> ClientFactory {
+		protected GitClient Client {
 			get;
 		}
 
-		protected Repository Repository {
-			get;
-		}
-
-		public GitHubActionProvider (Func<GitHubClient> client, Repository repository)
+		public GitActionProvider (GitClient client)
 		{
 			if (client == null)
 				throw new ArgumentNullException (nameof (client));
 
-			ClientFactory = client;
-			Repository = repository;
-		}
-
-		protected GitHubClient CreateClient ()
-		{
-			return ClientFactory ();
-		}
-
-		protected async Task<string> GetFileContent (string path, string reference)
-		{
-			var files = await CreateClient ().Repository.Content.GetAllContentsByRef (Repository.Owner, Repository.Name, path, reference);
-			if (files.Count != 1)
-				throw new InvalidOperationException (string.Format ("Unexpected number of files returned from GitHub API. Expected '1' but got '{0}' for file {1}", files.Count, path)); 
-
-			return files [0].Content;
+			Client = client;
 		}
 	}
 }

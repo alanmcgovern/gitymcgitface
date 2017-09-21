@@ -30,6 +30,7 @@ using Octokit;
 using Octokit.Reactive;
 
 using libgitface.ActionProviders;
+using libgitface;
 
 namespace GityMcGitface
 {
@@ -60,13 +61,16 @@ namespace GityMcGitface
 
 		public override void DidFinishLaunching(NSNotification notification)
 		{
-			Func<GitHubClient> clientFactory = () => new GitHubClient (Product) {
+			Func<GitHubClient> gitHubClientFactory = () => new GitHubClient (Product) {
 				Credentials = new Credentials (Secrets.GithubToken)
 			};
 
 			foreach (var repository in Repositories) {
-				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (clientFactory, repository, CancellationToken.None, Usernames));
-				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (clientFactory, repository, "master"));
+				var client = new GitClient (gitHubClientFactory)
+					.WithRepository (repository);
+
+				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (client, CancellationToken.None, Usernames));
+				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (client));
 			}
 			ActionCentre.Refresh ();
 		}

@@ -1,3 +1,5 @@
+*.csproj.user
+.DS_Store
 /GityMcGitface.userprefs
 
 /GityMcGitface/bin
@@ -5,5 +7,6 @@
 
 /libgitface/bin
 /libgitface/obj
-
+/libgitface-tests/bin
+/libgitface-tests/obj
 /packages

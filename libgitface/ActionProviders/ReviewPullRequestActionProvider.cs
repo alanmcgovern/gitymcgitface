@@ -29,7 +29,7 @@ using Octokit;
 
 namespace libgitface.ActionProviders
 {
-	public class ReviewPullRequestActionProvider : GitHubActionProvider
+	public class ReviewPullRequestActionProvider : GitActionProvider
 	{
 		class PullRequestComparer : IEqualityComparer<PullRequest>
 		{
@@ -49,19 +49,17 @@ namespace libgitface.ActionProviders
 			get;
 		}
 
-		public ReviewPullRequestActionProvider (Func<GitHubClient> client, Repository repo, CancellationToken token)
-			: this (client, repo, token, Enumerable.Empty<string> ())
+		public ReviewPullRequestActionProvider (GitClient client, CancellationToken token)
+			: this (client, token, Enumerable.Empty<string> ())
 		{
 
 		}
 
-		public ReviewPullRequestActionProvider (Func<GitHubClient> client, Repository repo, CancellationToken token, IEnumerable<string> usernames)
-			: base (client, repo)
+		public ReviewPullRequestActionProvider (GitClient client, CancellationToken token, IEnumerable<string> usernames)
+			: base (client)
 		{
 			if (client == null)
 				throw new ArgumentNullException (nameof (client));
-			if (repo == null)
-				throw new ArgumentNullException (nameof (repo));
 			if (usernames == null)
 				throw new ArgumentNullException (nameof (usernames));
 
@@ -72,7 +70,7 @@ namespace libgitface.ActionProviders
 		public async override void Refresh ()
 		{
 			try {
-				var prs = await CreateClient ().PullRequest.GetAllForRepository (Repository.Owner, Repository.Name);
+				var prs = await Client.GetPullRequests ();
 				foreach (var pr in prs)
 					HandlePullRequest (pr);
 			} catch (Exception ex) {
@@ -92,7 +90,7 @@ namespace libgitface.ActionProviders
 				PullRequests.Add (pr, new OpenUrlAction {
 					Url = pr.HtmlUrl.OriginalString,
 					ShortDescription = $"Review {pr.Title}",
-					Tooltip = $"Review pull request in {Repository.Owner}/{Repository.Name}, created by {pr.User.Login}"
+					Tooltip = $"Review pull request in {Client.Repository.Label}, created by {pr.User.Login}"
 				});
 			} else {
 				if (!PullRequests.Remove (pr))

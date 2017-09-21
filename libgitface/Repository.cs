@@ -26,17 +26,10 @@ namespace libgitface
 {
 	public sealed class Repository
 	{
-		public string Owner {
-			get;
-		}
-
-		public string Name {
-			get;
-		}
-
-		public Uri Uri {
-			get;
-		}
+		public string Label => $"{Owner}/{Name}";
+		public string Name { get; }
+		public string Owner { get; }
+		public Uri Uri { get; }
 
 		public Repository (Uri uri)
 			: this (uri, null)
