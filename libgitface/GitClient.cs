@@ -32,6 +32,7 @@ namespace libgitface
 	{
 		public string BranchName { get; }
 		public string BranchRef => "refs/heads/" + BranchName;
+
 		Func<GitHubClient> ClientFactory { get; }
 		public Repository Repository { get; }
 
@@ -54,7 +55,7 @@ namespace libgitface
 		public async Task<bool> BranchExists (string branchName)
 		{
 			try {
-				var branchRef = "refs/heads/" + branchName;
+				var branchRef = "heads/" + branchName;
 				await CreateClient ().Git.Reference.Get (Repository.Owner, Repository.Name, branchRef);
 				return true;
 			} catch (NotFoundException) {
@@ -93,7 +94,7 @@ namespace libgitface
 
 		public async Task<GitClient> DeleteBranch (string branchName)
 		{
-			var branchRef = "refs/heads/" + branchName;
+			var branchRef = "heads/" + branchName;
 			await CreateClient ().Git.Reference.Delete (Repository.Owner, Repository.Name, branchRef);
 			return WithBranch (branchName);
 		}
@@ -122,6 +123,12 @@ namespace libgitface
 		{
 			var file = await CreateClient ().Repository.Content.GetAllContentsByRef (Repository.Owner, Repository.Name, submodule.Path, BranchRef);
 			return file.Single ().Sha;
+		}
+
+		public async Task UpdateFileContent (string title, string body, string path, string content)
+		{
+			var currentSha = await CreateClient ().Repository.Content.GetAllContentsByRef (Repository.Owner, Repository.Name, path, BranchRef);
+			await CreateClient ().Repository.Content.UpdateFile (Repository.Owner, Repository.Name, path, new UpdateFileRequest ($"{title}\r\n\r\n{body}", content, currentSha.Single ().Sha, BranchRef));
 		}
 
 		GitHubClient CreateClient ()

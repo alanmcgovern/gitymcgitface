@@ -10,6 +10,7 @@ namespace libgitface
 		public const string Bump = nameof (Bump);
 		public const string Direct = nameof (Direct);
 		public const string PR = nameof (PR);
+		public static readonly string[] BumpPullRequest = new string[] { Bump, PR };
 
 		public const string Review = nameof (Review);
 		public const string Merge = nameof (Merge);

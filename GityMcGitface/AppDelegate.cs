@@ -41,11 +41,12 @@ namespace GityMcGitface
 			get;
 		}
 
+		public string[] Branches => new string[] { "master", "d15-5" };
+
 		ProductHeaderValue Product => new ProductHeaderValue ("gity-mc-gitface");
 
 		libgitface.Repository[] Repositories => new [] {
-			//new libgitface.Repository (new Uri ("https://github.com/alanmcgovern/gitymcgitface")),
-			new libgitface.Repository (new Uri ("https://github.com/alanmcgovern/designer"))
+			new libgitface.Repository (new Uri ("https://github.com/xamarin/designer"))
 		};
 
 		string[] Usernames => new [] {
@@ -66,12 +67,24 @@ namespace GityMcGitface
 			};
 
 			var baseClient = new GitClient (gitHubClientFactory);
-			foreach (var repository in Repositories) {
-				var client = baseClient.WithRepository (repository);
 
-				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (client, CancellationToken.None, Usernames));
-				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (client));
+			// For each tracked repository we should check the submodule status for each tracked branch.
+			foreach (var repository in Repositories) {
+				foreach (var branch in Branches) {
+					ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (baseClient.WithBranch (branch).WithRepository (repository)));
+				}
 			}
+
+			// For each tracked branch we should make sure the latest designer commit is integrated with VS and XS
+			foreach (var branch in Branches) {
+				ActionCentre.ActionProviders.Add (new BumpDesignerActionProvider (baseClient.WithBranch (branch)));
+			}
+
+			// For each tracked repository we should keep tabs on open PRs
+			foreach (var repository in Repositories) {
+				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (baseClient.WithRepository (repository), CancellationToken.None, Usernames));
+			}
+
 			ActionCentre.Refresh ();
 		}
 

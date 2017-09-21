@@ -23,7 +23,7 @@ namespace libgitface.ActionProviders
 
 				var infos = await Task.WhenAll (modules.Select (GetCurrentHashAndBranchTip));
 				var requiresUpdate = infos.Where (t => t.HeadSha != t.CurrentSha).ToArray ();
-				return new [] { new CreateSubmoduleBumpPRAction (Client, requiresUpdate, Groupings.Bump, Groupings.PR) };
+				return new [] { new CreateSubmoduleBumpPRAction (Client, requiresUpdate, Groupings.BumpPullRequest) };
 			} catch (Octokit.NotFoundException) {
 				return null;
 			}

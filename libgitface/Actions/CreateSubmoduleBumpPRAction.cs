@@ -8,11 +8,12 @@ namespace libgitface
 {
 	public class CreateSubmoduleBumpPRAction : IAction
 	{
+		string AutoBumpBranchName => $"auto-bump-submodules-{Client.BranchName}";
 		GitClient Client { get; }
 		SubmoduleInformation[] Submodules { get; }
 
 		public string[] Grouping { get; }
-		public string ShortDescription => $"Bump {Submodules.Length} submodules";
+		public string ShortDescription => $"Bump submodules ({Client.Repository.Name}/{Client.BranchName})";
 		public string Tooltip => CreateTitleText ();
 
 		public CreateSubmoduleBumpPRAction (GitClient client, SubmoduleInformation[] submodules, params string[] grouping)
@@ -47,11 +48,10 @@ namespace libgitface
 
 			var newTreeSha = await Client.CreateTree (tree);
 			var commitSha = await Client.CreateCommit (CreateTitleText () + "\r\n\r\n" + CreateBodyText (), newTreeSha, headSha);
-			var branchName = $"auto-bump-submodules";
-			if (await Client.BranchExists (branchName))
-				await Client.DeleteBranch (branchName);
-			await Client.CreateBranch (branchName, commitSha);
-			return branchName;
+			if (await Client.BranchExists (AutoBumpBranchName))
+				await Client.DeleteBranch (AutoBumpBranchName);
+			await Client.CreateBranch (AutoBumpBranchName, commitSha);
+			return AutoBumpBranchName;
 		}
 
 		string CreateTitleText ()
