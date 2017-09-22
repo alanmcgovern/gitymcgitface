@@ -26,6 +26,10 @@ namespace GityMcGitface
 {
 	static class Secrets
 	{
-		public const string GithubToken = "This is my github personal access token";
+		// Copy and paste this file in any directory above the place where
+		// this repository is checked out and then put your github token in
+		// that copy of the file. The build will use that copy of the file instead
+		// of this one.
+		public const string GithubToken = "My GitHub Token";
 	}
 }

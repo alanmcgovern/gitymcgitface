@@ -30,19 +30,22 @@ namespace libgitface
 		public async void Execute()
 		{
 			string externalOldSha;
-			var head = await Client.GetHeadSha ();
 			var externalHead = await External.GetHeadSha ();
 			var externalFile = await Client.GetFileContent (".external");
 			externalFile = UpdateExternal (externalFile, externalHead, out externalOldSha);
 
 			if (await Client.BranchExists (AutoBumpBranchName))
 				await Client.DeleteBranch (AutoBumpBranchName);
-			// We want the GitClient that interacts with the new branch we just created.
-			var client = await Client.CreateBranch (AutoBumpBranchName, head);
+
 			var title = $"Bump {External.Repository.Label}";
 			var body = $"{External.Repository.Uri}/compare/{externalOldSha}...{externalHead}";
 
+			// Update the content on a branch
+			var head = await Client.GetHeadSha ();
+			var client = await Client.CreateBranch (AutoBumpBranchName, head);
 			await client.UpdateFileContent (title, body, ".external", externalFile);
+
+			// Issue the PullRequest against the original branch
 			await Client.CreatePullRequest (AutoBumpBranchName, title, body); 
 		}
 
@@ -51,7 +54,7 @@ namespace libgitface
 			bool useCRLF = content.IndexOf ("\r\n") > 0;
 			var lines = content.Split (new [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-			var designerLabel = "xamarin/designer";// Designer.Repository.Label;
+			var designerLabel = Client.Repository.Label;
 			oldSha = null;
 			for (int i = 0; i < lines.Length; i ++) {
 				if (lines [i].StartsWith (designerLabel)) {

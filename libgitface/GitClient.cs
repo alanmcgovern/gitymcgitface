@@ -119,6 +119,16 @@ namespace libgitface
 			return await CreateClient ().PullRequest.GetAllForRepository (Repository.Owner, Repository.Name);
 		}
 
+		public async Task<IReadOnlyList<CommitStatus>> GetLatestStatuses (string commitSha, string contextFilter)
+		{
+			var statuses = await CreateClient ().Repository.Status.GetAll (Repository.Owner, Repository.Name, commitSha);
+			return statuses
+				.Where (t => t.Context.StartsWith (contextFilter))
+				.GroupBy (t => t.Context)
+				.Select (t => t.OrderByDescending (g => g.CreatedAt).First ())
+				.ToArray ();
+		}
+
 		public async Task<string> GetSubmoduleSha (SubmoduleEntry submodule)
 		{
 			var file = await CreateClient ().Repository.Content.GetAllContentsByRef (Repository.Owner, Repository.Name, submodule.Path, BranchRef);
