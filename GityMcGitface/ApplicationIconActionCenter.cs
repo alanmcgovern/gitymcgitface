@@ -55,8 +55,11 @@ namespace GityMcGitface
 
 		NSMenu CreateMenu (IAction[] actions)
 		{
+			var refresher = new NSMenuItem ("Refresh");
+			refresher.Activated += (o, e) => Refresh ();
+
 			return new NSMenu {
-				Delegate = new ActionMenuDelegate (actions, 0)
+				Delegate = new ActionMenuDelegate (actions, 0, refresher)
 			};
 		}
 
@@ -70,15 +73,30 @@ namespace GityMcGitface
 				get;
 			}
 
+			NSMenuItem Refresher {
+				get;
+			}
+
 			public ActionMenuDelegate (IAction[] actions, int depth)
+				: this (actions, depth, null)
+			{
+			}
+
+			public ActionMenuDelegate (IAction[] actions, int depth, NSMenuItem refresher)
 			{
 				Depth = depth;
 				Grouping = actions.GroupBy (t => t.Grouping.Skip (depth).ToArray (), Groupings.GroupingComparer).OrderBy (g => g.Key.FirstOrDefault ()).ToArray ();
+				Refresher = refresher;
 			}
 
 			public override void NeedsUpdate (NSMenu menu)
 			{
 				menu.RemoveAllItems ();
+				if (Refresher != null) {
+					menu.AddItem (Refresher);
+					menu.AddItem (NSMenuItem.SeparatorItem);
+				}
+
 				foreach (var group in Grouping) {
 					if (group.Key.Length == 0) {
 						foreach (var action in group) {
