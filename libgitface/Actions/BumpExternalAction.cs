@@ -54,7 +54,7 @@ namespace libgitface
 			bool useCRLF = content.IndexOf ("\r\n") > 0;
 			var lines = content.Split (new [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-			var designerLabel = Client.Repository.Label;
+			var designerLabel = External.Repository.Label;
 			oldSha = null;
 			for (int i = 0; i < lines.Length; i ++) {
 				if (lines [i].StartsWith (designerLabel)) {

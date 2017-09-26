@@ -32,7 +32,7 @@ namespace libgitface.ActionProviders
 
 		protected override async Task<IAction[]> RefreshActions()
 		{
-			var head = "f99a14dc89cbf201015f4a3760c2ec4f4da0cdbc";//await Designer.GetHeadSha ();
+			var head = await Designer.GetHeadSha ();
 			var actions = new List<IAction> ();
 
 			var xamarinVSFile = await XamarinVS.GetFileContent (".external");
@@ -40,11 +40,9 @@ namespace libgitface.ActionProviders
 				actions.Add (new BumpExternalAction (XamarinVS, Designer, Groupings.BumpPullRequest));
 
 			var statuses = await Designer.GetLatestStatuses (head, "MPACK-");
-			//var mdaddinsFile = await MDAddins.GetFileContent ("external-addins/designer/designer/source.txt");
-			var mdaddinsFile = System.IO.File.ReadAllText ("/Users/alan/Projects/md-addins/external-addins/designer/source.txt");
-			var newFile = string.Join ("\n", statuses.OrderBy (t => t.TargetUrl).Select (t => t.TargetUrl.ToString ()));
+			var mdaddinsFile = await MDAddins.GetFileContent ("external-addins/designer/source.txt");
+			var newFile = string.Join ("\n", statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t));
 			if (mdaddinsFile != newFile)
-			if (!xamarinVSFile.Contains (head))
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest));
 
 			return actions.ToArray ();

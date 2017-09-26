@@ -24,8 +24,8 @@ namespace libgitface
 		{
 			var designerHeadSha = await DesignerExternal.GetHeadSha ();
 			var statuses = await DesignerExternal.GetLatestStatuses (designerHeadSha, "MPACK-");
-			var currentFile = await MDAddinsClient.GetFileContent ("external-addins/designer/designer/source.txt");
-			var newFile = string.Join ("\n", statuses.OrderBy (t => t.TargetUrl).Select (t => t.TargetUrl.ToString ()));
+			var currentFile = await MDAddinsClient.GetFileContent ("external-addins/designer/source.txt");
+			var newFile = string.Join ("\n", statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t));
 
 			var uri = new Uri (currentFile.Split (new [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First ());
 			var designerCurrentSha = Path.GetFileName (Path.GetDirectoryName (uri.PathAndQuery));
@@ -39,7 +39,7 @@ namespace libgitface
 			// Update the content on a branch
 			var head = await MDAddinsClient.GetHeadSha ();
 			var client = await MDAddinsClient.CreateBranch (AutoBumpBranchName, head);
-			await client.UpdateFileContent (title, body, "external-addins/designer/designer/source.txt", newFile);
+			await client.UpdateFileContent (title, body, "external-addins/designer/source.txt", newFile);
 
 			// Issue the PullRequest against the original branch
 			await MDAddinsClient.CreatePullRequest (AutoBumpBranchName, title, body);

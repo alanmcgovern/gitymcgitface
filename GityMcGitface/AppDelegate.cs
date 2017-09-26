@@ -49,10 +49,6 @@ namespace GityMcGitface
 			new libgitface.Repository (new Uri ("https://github.com/xamarin/designer"))
 		};
 
-		string[] Usernames => new [] {
-			"alanmcgovern",
-		};
-
 		public AppDelegate()
 		{
 			NSStatusBar bar = NSStatusBar.SystemStatusBar;
@@ -82,7 +78,8 @@ namespace GityMcGitface
 
 			// For each tracked repository we should keep tabs on open PRs
 			foreach (var repository in Repositories) {
-				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (baseClient.WithRepository (repository), CancellationToken.None, Usernames));
+				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (baseClient.WithRepository (repository), CancellationToken.None));
+				ActionCentre.ActionProviders.Add (new VSMBuddyTestActionProvider (baseClient.WithRepository (repository), new Downloader ()));
 			}
 
 			ActionCentre.Refresh ();
