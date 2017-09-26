@@ -35,14 +35,21 @@ namespace libgitface.ActionProviders
 			var head = await Designer.GetHeadSha ();
 			var actions = new List<IAction> ();
 
+			var statuses = (await Designer.GetLatestStatuses (head, "VSIX-")).ToArray ();
+			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
+
+			// Only bump when we have 4 successful VSIX statuses
 			var xamarinVSFile = await XamarinVS.GetFileContent (".external");
-			if (!xamarinVSFile.Contains (head))
+			if (statuses.Length == 4 && !xamarinVSFile.Contains (head))
 				actions.Add (new BumpExternalAction (XamarinVS, Designer, Groupings.BumpPullRequest));
 
-			var statuses = await Designer.GetLatestStatuses (head, "MPACK-");
+			statuses = (await Designer.GetLatestStatuses (head, "MPACK-")).ToArray ();
+			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
+
+			// Only bump when we have 4 successful MPACK statuses
 			var mdaddinsFile = await MDAddins.GetFileContent ("external-addins/designer/source.txt");
 			var newFile = string.Join ("\n", statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t));
-			if (mdaddinsFile != newFile)
+			if (statuses.Length == 4 && mdaddinsFile != newFile)
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest));
 
 			return actions.ToArray ();
