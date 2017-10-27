@@ -19,6 +19,10 @@ namespace libgitface
 			get;
 		}
 
+		bool UsePullRequest {
+			get { return Grouping.Contains (Groupings.PR); }
+		}
+
 		public BumpExternalAction (GitClient client, GitClient external, params string[] grouping)
 		{
 			Client = client;
@@ -34,7 +38,7 @@ namespace libgitface
 			var externalFile = await Client.GetFileContent (".external");
 			externalFile = UpdateExternal (externalFile, externalHead, out externalOldSha);
 
-			if (await Client.BranchExists (AutoBumpBranchName))
+			if (UsePullRequest && await Client.BranchExists (AutoBumpBranchName))
 				await Client.DeleteBranch (AutoBumpBranchName);
 
 			var title = $"Bump {External.Repository.Label}";
@@ -42,11 +46,16 @@ namespace libgitface
 
 			// Update the content on a branch
 			var head = await Client.GetHeadSha ();
-			var client = await Client.CreateBranch (AutoBumpBranchName, head);
+
+			var client = Client;
+			if (UsePullRequest)
+				client = await Client.CreateBranch (AutoBumpBranchName, head);
+
 			await client.UpdateFileContent (title, body, ".external", externalFile);
 
 			// Issue the PullRequest against the original branch
-			await Client.CreatePullRequest (AutoBumpBranchName, title, body); 
+			if (UsePullRequest)
+				await Client.CreatePullRequest (AutoBumpBranchName, title, body); 
 		}
 
 		string UpdateExternal (string content, string newSha, out string oldSha)

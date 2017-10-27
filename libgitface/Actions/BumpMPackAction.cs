@@ -13,6 +13,11 @@ namespace libgitface
 
 		GitClient MDAddinsClient { get; }
 		GitClient DesignerExternal { get; }
+
+		bool UsePullRequest {
+			get { return Grouping.Contains (Groupings.PR); }
+		}
+
 		public BumpMDAddinsMPackAction (GitClient mdaddinsClient, GitClient designerExternal, params string[] grouping)
 		{
 			MDAddinsClient = mdaddinsClient;
@@ -35,7 +40,7 @@ namespace libgitface
 			var uri = new Uri (currentFile.Split (new [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First ());
 			var designerCurrentSha = Path.GetFileName (Path.GetDirectoryName (uri.PathAndQuery));
 
-			if (await MDAddinsClient.BranchExists (AutoBumpBranchName))
+			if (UsePullRequest && await MDAddinsClient.BranchExists (AutoBumpBranchName))
 				await MDAddinsClient.DeleteBranch (AutoBumpBranchName);
 
 			var title = $"Bump {DesignerExternal.Repository.Label}";
@@ -43,11 +48,16 @@ namespace libgitface
 
 			// Update the content on a branch
 			var head = await MDAddinsClient.GetHeadSha ();
-			var client = await MDAddinsClient.CreateBranch (AutoBumpBranchName, head);
+
+			var client = MDAddinsClient;
+			if (UsePullRequest)
+				client = await MDAddinsClient.CreateBranch (AutoBumpBranchName, head);
+
 			await client.UpdateFileContent (title, body, "external-addins/designer/source.txt", newFile);
 
 			// Issue the PullRequest against the original branch
-			await MDAddinsClient.CreatePullRequest (AutoBumpBranchName, title, body);
+			if (UsePullRequest)
+				await MDAddinsClient.CreatePullRequest (AutoBumpBranchName, title, body);
 		}
 	}
 }

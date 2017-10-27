@@ -9,6 +9,7 @@ namespace libgitface.ActionProviders
 	{
 		static readonly Uri DesignerUri = new Uri ("https://github.com/xamarin/designer");
 		static readonly Uri MDAddinsUri = new Uri ("https://github.com/xamarin/md-addins");
+		static readonly Uri VisualStudioUri = new Uri ("https://github.com/xamarin/VisualStudio");
 		static readonly Uri XamarinVSUri = new Uri ("https://github.com/xamarin/xamarinvs");
 
 		GitClient Designer {
@@ -16,6 +17,10 @@ namespace libgitface.ActionProviders
 		}
 
 		GitClient MDAddins {
+			get;
+		}
+
+		GitClient VisualStudio {
 			get;
 		}
 
@@ -27,6 +32,7 @@ namespace libgitface.ActionProviders
 		{
 			Designer = client.WithRepository (new Repository (DesignerUri));
 			MDAddins = client.WithRepository (new Repository (MDAddinsUri));
+			VisualStudio = client.WithRepository (new Repository (VisualStudioUri));
 			XamarinVS = client.WithRepository (new Repository (XamarinVSUri));
 		}
 
@@ -38,10 +44,14 @@ namespace libgitface.ActionProviders
 			var statuses = (await Designer.GetLatestStatuses (head, "VSIX-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
 
-			// Only bump when we have 4 successful VSIX statuses
-			var xamarinVSFile = await XamarinVS.GetFileContent (".external");
-			if (statuses.Length == 4 && !xamarinVSFile.Contains (head))
-				actions.Add (new BumpExternalAction (XamarinVS, Designer, Groupings.BumpPullRequest));
+			foreach (var repoWithExternals in new [] { VisualStudio, XamarinVS }) {
+				// Only bump when we have 4 successful VSIX statuses
+				var externalFile = await repoWithExternals.GetFileContent (".external");
+				if (statuses.Length == 4 && !externalFile.Contains (head)) {
+					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpDirect));
+					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpPullRequest));
+				}
+			}
 
 			statuses = (await Designer.GetLatestStatuses (head, "MPACK-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
@@ -49,8 +59,10 @@ namespace libgitface.ActionProviders
 			// Only bump when we have 4 successful MPACK statuses
 			var mdaddinsFile = await MDAddins.GetFileContent ("external-addins/designer/source.txt");
 			var newFile = string.Join ("\n", statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t));
-			if (statuses.Length == 4 && mdaddinsFile != newFile)
+			if (statuses.Length == 4 && mdaddinsFile != newFile) {
+				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpDirect));
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest));
+			}
 
 			return actions.ToArray ();
 		}
