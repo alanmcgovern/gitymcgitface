@@ -30,7 +30,6 @@ namespace libgitface
 			Grouping = grouping;
 		}
 
-
 		public async void Execute()
 		{
 			string externalOldSha;
@@ -55,7 +54,7 @@ namespace libgitface
 
 			// Issue the PullRequest against the original branch
 			if (UsePullRequest)
-				await Client.CreatePullRequest (AutoBumpBranchName, title, body); 
+				await Client.CreatePullRequest (AutoBumpBranchName, title, body);
 		}
 
 		string UpdateExternal (string content, string newSha, out string oldSha)

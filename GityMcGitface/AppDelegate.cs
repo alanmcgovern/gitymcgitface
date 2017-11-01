@@ -71,9 +71,11 @@ namespace GityMcGitface
 				}
 			}
 
-			// For each tracked branch we should make sure the latest designer commit is integrated with VS and XS
+			// For each tracked branch we should make sure the latest designer commit is integrated with VS and XS.
+			// We should also ensure the latest Xamarin.iOS and Xamarin.Mac is included with the designer.
 			foreach (var branch in Branches) {
 				ActionCentre.ActionProviders.Add (new BumpDesignerActionProvider (baseClient.WithBranch (branch)));
+				ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch)));
 			}
 
 			// For each tracked repository we should keep tabs on open PRs

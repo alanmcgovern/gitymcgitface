@@ -9,6 +9,7 @@
     <Folder Include="Actions\" />
     <Folder Include="Submodules\" />
     <Folder Include="Downloader\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Octokit" Version="0.24.1-alpha0001" />
