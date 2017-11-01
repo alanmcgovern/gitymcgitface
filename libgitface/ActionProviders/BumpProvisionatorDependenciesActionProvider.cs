@@ -22,7 +22,7 @@ namespace libgitface.ActionProviders
 			var actions = new List<IAction> ();
 
 			if (newDependencies != null)
-				actions.Add (new BumpProvisionatorDependenciesAction (Controller, Groupings.BumpPullRequest));
+				actions.Add (new BumpProvisionatorDependenciesAction (Controller, newDependencies, Groupings.BumpPullRequest));
 			return actions.ToArray ();
 		}
 	}

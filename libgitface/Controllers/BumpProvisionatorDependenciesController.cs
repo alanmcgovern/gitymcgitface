@@ -10,11 +10,15 @@ namespace libgitface
 		public string OldDependenciesCsx;
 		public string NewDependenciesCsx;
 
+		public string OldAndroidSha;
+		public string OldAndroidUrl;
 		public string OldMacSha;
 		public string OldMacUrl;
 		public string OldIosSha;
 		public string OldIosUrl;
 
+		public string NewAndroidSha;
+		public string NewAndroidUrl;
 		public string NewMacSha;
 		public string NewMacUrl;
 		public string NewIosSha;
@@ -23,10 +27,12 @@ namespace libgitface
 
 	public class BumpProvisionatorDependenciesController
 	{
+		const string AndroidPrefix = "xamarin.android";
 		const string IosPrefix = "xamarin.ios";
 		const string MacPrefix = "xamarin.mac";
 
 		static readonly Uri DesignerUri = new Uri ("https://github.com/xamarin/designer");
+		static readonly Uri MonoDroidUri = new Uri ("https://github.com/xamarin/monodroid");
 		static readonly Uri MacIosUri = new Uri ("https://github.com/xamarin/xamarin-macios");
 
 		public GitClient Designer {
@@ -37,12 +43,17 @@ namespace libgitface
 			get;
 		}
 
+		public GitClient MonoDroid {
+			get;
+		}
+
 		public string ProvisionatorFile => "bot-provisioning/dependencies.csx";
 
 		public BumpProvisionatorDependenciesController (GitClient client)
 		{
 			Designer = client.WithRepository (new Repository (DesignerUri));
 			MacIos = client.WithRepository (new Repository (MacIosUri));
+			MonoDroid = client.WithRepository (new Repository (MonoDroidUri));
 		}
 
 		/// <summary>
@@ -54,29 +65,39 @@ namespace libgitface
 			var info = new ProvisionatorInfo ();
 
 			info.OldDependenciesCsx = await Designer.GetFileContent (ProvisionatorFile);
-			info.OldIosUrl = GetUrl (IosPrefix, info.OldDependenciesCsx);
-			info.OldMacUrl = GetUrl (MacPrefix, info.OldDependenciesCsx);
-			info.OldIosSha = GetSha (info.OldIosUrl);
-			info.OldMacSha = GetSha (info.OldMacUrl);
 
-			var actions = new List<IAction> ();
+			info.OldAndroidUrl = info.NewAndroidUrl = GetUrl (AndroidPrefix, info.OldDependenciesCsx);
+			info.OldIosUrl = info.NewIosUrl = GetUrl (IosPrefix, info.OldDependenciesCsx);
+			info.OldMacUrl = info.NewMacUrl = GetUrl (MacPrefix, info.OldDependenciesCsx);
 
-			var head = await MacIos.GetHeadSha ();
-			var statuses = (await MacIos.GetLatestStatuses (head, "PKG-")).ToArray ();
-			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
-			if (statuses.Length == 2) {
-				var newUrls = statuses.Select (t => t.TargetUrl.ToString ()).ToArray ();
-				info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).Single ();
-				info.NewMacUrl = newUrls.Where (t => t.Contains (MacPrefix)).Single ();
-				info.NewIosSha = GetSha (info.NewIosUrl);
-				info.NewMacSha = GetSha (info.NewMacUrl);
-				info.NewDependenciesCsx = info.OldDependenciesCsx
-					.Replace (info.OldMacUrl, info.NewMacUrl)
-					.Replace (info.OldIosUrl, info.NewIosUrl);
+			info.OldAndroidSha = info.NewAndroidSha = GetSha (info.OldAndroidUrl);
+			info.OldIosSha = info.NewIosSha = GetSha (info.OldIosUrl);
+			info.OldMacSha = info.NewMacSha = GetSha (info.OldMacUrl);
 
-				if (info.OldDependenciesCsx != info.NewDependenciesCsx)
-					return info;
-			}
+			var macIosHead = await MacIos.GetHeadSha ();
+			var macIosStatuses = await MacIos.GetLatestStatuses (macIosHead, "PKG-");
+			var androidHead = await MonoDroid.GetHeadSha ();
+			var androidStatuses = await MonoDroid.GetLatestStatuses (androidHead, "PKG-");
+			var statuses = macIosStatuses.Concat (androidStatuses).Where (t => t.State == Octokit.CommitState.Success);
+
+			var newUrls = statuses.Select (t => t.TargetUrl.ToString ()).ToArray ();
+
+			info.NewAndroidUrl = newUrls.Where (t => t.Contains (AndroidPrefix)).SingleOrDefault () ?? info.NewAndroidUrl;
+			info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).SingleOrDefault () ?? info.NewIosUrl;
+			info.NewMacUrl = newUrls.Where (t => t.Contains (MacPrefix)).SingleOrDefault () ?? info.NewMacUrl;
+
+			info.NewAndroidSha = GetSha (info.NewAndroidUrl);
+			info.NewIosSha = GetSha (info.NewIosUrl);
+			info.NewMacSha = GetSha (info.NewMacUrl);
+
+			info.NewDependenciesCsx = info.OldDependenciesCsx
+				.Replace (info.OldAndroidUrl, info.NewAndroidUrl)
+				.Replace (info.OldIosUrl, info.NewIosUrl)
+				.Replace (info.OldMacUrl, info.NewMacUrl);
+
+			if (info.OldDependenciesCsx != info.NewDependenciesCsx)
+				return info;
+
 			return null;
 		}
 

@@ -12,8 +12,8 @@ namespace libgitface
 		string AutoBumpBranchName => $"auto-bump-provisionator-{Client.BranchName}";
 
 		public string[] Grouping { get; }
-		public string ShortDescription => $"Bump provisionator ({Client.Repository.Name}/{Client.BranchName})";
-		public string Tooltip => "Bumping provisionator";
+		public string ShortDescription { get; }
+		public string Tooltip { get; }
 
 		GitClient Client => Controller.Designer;
 
@@ -21,10 +21,12 @@ namespace libgitface
 			get;
 		}
 
-		public BumpProvisionatorDependenciesAction (BumpProvisionatorDependenciesController controller, params string[] grouping)
+		public BumpProvisionatorDependenciesAction (BumpProvisionatorDependenciesController controller, ProvisionatorInfo info, params string[] grouping)
 		{
 			Controller = controller;
 			Grouping = grouping;
+			ShortDescription = $"Bump provisionator ({Client.Repository.Name}/{Client.BranchName})";
+			Tooltip = CreateTitleText (info);
 		}
 
 		public async void Execute()
@@ -55,20 +57,21 @@ namespace libgitface
 
 		string CreateTitleText (ProvisionatorInfo info)
 		{
-			if (info.NewIosSha != info.OldIosSha && info.NewMacSha != info.OldMacSha) {
-				return $"Bump Xamarin.iOS and Xamarin.Mac";
-			} else if (info.NewIosSha != info.OldIosSha) {
-				return $"Bump Xamarin.iOS";
-			} else if (info.NewMacSha != info.OldMacSha) {
-				return $"Bump Xamarin.Mac";
-			} else {
-				throw new NotSupportedException ("Can't generate the title for this bump");
-			}
+			var products = new List<string> ();
+			if (info.NewAndroidSha != info.OldAndroidSha)
+				products.Add ("Xamarin.Android");
+			if (info.NewIosSha != info.OldIosSha)
+				products.Add ("Xamarin.iOS");
+			if (info.NewMacSha != info.OldMacSha)
+				products.Add ("Xamarin.Mac");
+			return $"Bump {string.Join (", ", products)}.";
 		}
 
 		string CreateBodyText (ProvisionatorInfo info)
 		{
 			var lines = new List<string> ();
+			if (info.NewAndroidSha != info.OldAndroidSha)
+				lines.Add ($"Xamarin.Android: {Controller.MonoDroid.Repository.Uri}/compare/{info.OldAndroidSha}...{info.NewAndroidSha}");
 			if (info.NewIosSha != info.OldIosSha)
 				lines.Add ($"Xamarin.iOS: {Controller.MacIos.Repository.Uri}/compare/{info.OldIosSha}...{info.NewIosSha}");
 			if (info.NewMacSha != info.OldMacSha)
