@@ -7,22 +7,22 @@ namespace libgitface.ActionProviders
 {
 	public class BumpProvisionatorDependenciesActionProvider : ActionProvider
 	{
-		BumpProvisionatorDependenciesController Controller {
+		GitClient Client {
 			get;
 		}
 
 		public BumpProvisionatorDependenciesActionProvider (GitClient client)
 		{
-			Controller = new BumpProvisionatorDependenciesController (client);
+			Client = client;
 		}
 
 		protected override async Task<IAction[]> RefreshActions()
 		{
-			var newDependencies = await Controller.TryBumpDependencies ();
+			var newDependencies = await new BumpProvisionatorDependenciesController (Client).TryBumpDependencies ();
 			var actions = new List<IAction> ();
 
 			if (newDependencies != null)
-				actions.Add (new BumpProvisionatorDependenciesAction (Controller, newDependencies, Groupings.BumpPullRequest));
+				actions.Add (new BumpProvisionatorDependenciesAction (new BumpProvisionatorDependenciesController (Client), newDependencies, Groupings.BumpPullRequest));
 			return actions.ToArray ();
 		}
 	}

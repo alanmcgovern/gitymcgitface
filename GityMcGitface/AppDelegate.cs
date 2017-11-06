@@ -27,7 +27,6 @@ using AppKit;
 using Foundation;
 
 using Octokit;
-using Octokit.Reactive;
 
 using libgitface.ActionProviders;
 using libgitface;

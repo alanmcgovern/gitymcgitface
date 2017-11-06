@@ -74,13 +74,25 @@ namespace libgitface
 			info.OldIosSha = info.NewIosSha = GetSha (info.OldIosUrl);
 			info.OldMacSha = info.NewMacSha = GetSha (info.OldMacUrl);
 
-			var macIosHead = await MacIos.GetHeadSha ();
-			var macIosStatuses = await MacIos.GetLatestStatuses (macIosHead, "PKG-");
-			var androidHead = await MonoDroid.GetHeadSha ();
-			var androidStatuses = await MonoDroid.GetLatestStatuses (androidHead, "PKG-");
-			var statuses = macIosStatuses.Concat (androidStatuses).Where (t => t.State == Octokit.CommitState.Success);
+			var statuses = Enumerable.Empty<Octokit.CommitStatus> ();
+			try {
+				var macIosHead = await MacIos.GetHeadSha ();
+				var macIosStatuses = await MacIos.GetLatestStatuses (macIosHead, "PKG-");
+				statuses = statuses.Concat (macIosStatuses);
+			} catch {
+				Console.WriteLine ($"Could not get statuses from {MacIos.Repository}");
+			}
+			try {
+				var androidHead = await MonoDroid.GetHeadSha ();
+				var androidStatuses = await MonoDroid.GetLatestStatuses (androidHead, "PKG-");
+				statuses = statuses.Concat (androidStatuses);
+			} catch {
+				Console.WriteLine ($"Could not get statuses from {MonoDroid.Repository}");
+			}
 
-			var newUrls = statuses.Select (t => t.TargetUrl.ToString ()).ToArray ();
+			var newUrls = statuses
+				.Where (t => t.State == Octokit.CommitState.Success)
+				.Select (t => t.TargetUrl.ToString ()).ToArray ();
 
 			info.NewAndroidUrl = newUrls.Where (t => t.Contains (AndroidPrefix)).SingleOrDefault () ?? info.NewAndroidUrl;
 			info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).SingleOrDefault () ?? info.NewIosUrl;

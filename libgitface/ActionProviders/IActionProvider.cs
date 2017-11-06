@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System;
+using System.Threading.Tasks;
 
 namespace libgitface.ActionProviders
 {
@@ -29,6 +30,6 @@ namespace libgitface.ActionProviders
 		event EventHandler StatusChanged;
 
 		IAction[] Actions { get; }
-		void Refresh ();
+		Task Refresh ();
 	}
 }

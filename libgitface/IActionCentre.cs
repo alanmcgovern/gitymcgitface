@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using libgitface.ActionProviders;
 
 namespace libgitface
@@ -29,6 +30,6 @@ namespace libgitface
 	public interface IActionCentre
 	{
 		ObservableCollection<IActionProvider> ActionProviders { get; }
-		void Refresh ();
+		Task Refresh ();
 	}
 }

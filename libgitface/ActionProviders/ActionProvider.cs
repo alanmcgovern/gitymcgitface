@@ -43,12 +43,13 @@ namespace libgitface.ActionProviders
 		{
 		}
 
-		public async void Refresh ()
+		public async Task Refresh ()
 		{
 			try {
 				Actions = await RefreshActions ();
-			} catch (Exception ex) {
-				Log.Exception ($"An exception occurred refreshing '{GetType ().Name}'.", ex);
+			} catch {
+				Actions = null;
+				throw;
 			}
 		}
 

@@ -13,7 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Octokit" Version="0.24.1-alpha0001" />
-    <PackageReference Include="Octokit.Reactive" Version="0.24.1-alpha0001" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
   </ItemGroup>
 </Project>

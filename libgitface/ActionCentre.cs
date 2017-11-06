@@ -25,7 +25,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
-
+using System.Threading.Tasks;
 using libgitface.ActionProviders;
 
 namespace libgitface
@@ -79,10 +79,15 @@ namespace libgitface
 				SyncContext.Post (t => OnAvailableActionsChanged (actions), null);
 		}
 
-		public void Refresh ()
+		public async Task Refresh ()
 		{
-			foreach (IActionProvider provider in ActionProviders)
-				provider.Refresh ();
+			foreach (IActionProvider provider in ActionProviders) {
+				try {
+					await provider.Refresh ();
+				} catch (Exception ex) {
+					Console.WriteLine ("Failed to refresh '{0}' due to: {1}", provider.GetType ().Name, ex);
+				}
+			}
 		}
 	}
 }
