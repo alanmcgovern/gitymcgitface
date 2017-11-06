@@ -62,7 +62,7 @@ namespace libgitface.ActionProviders
 
 				if (pr.State == ItemState.Open) {
 					actions.Add (new OpenUrlAction (Groupings.Review, Client.Repository.Name) {
-						Url = pr.HtmlUrl.OriginalString,
+						Url = pr.HtmlUrl,
 						ShortDescription = $"Review {pr.Title}",
 						Tooltip = $"Review pull request in {Client.Repository.Label}, created by {pr.User.Login}"
 					});
