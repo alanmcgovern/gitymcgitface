@@ -64,6 +64,8 @@ namespace libgitface
 				products.Add ("Xamarin.iOS");
 			if (info.NewMacSha != info.OldMacSha)
 				products.Add ("Xamarin.Mac");
+			if (info.NewVSMSha != info.OldVSMSha)
+				products.Add ("VisualStudioMac");
 			return $"Bump {string.Join (", ", products)}.";
 		}
 
@@ -76,6 +78,8 @@ namespace libgitface
 				lines.Add ($"Xamarin.iOS: {Controller.MacIos.Repository.Uri}/compare/{info.OldIosSha}...{info.NewIosSha}");
 			if (info.NewMacSha != info.OldMacSha)
 				lines.Add ($"Xamarin.Mac: {Controller.MacIos.Repository.Uri}/compare/{info.OldMacSha}...{info.NewMacSha}");
+			if (info.NewVSMSha != info.OldVSMSha)
+				lines.Add ($"Visual Studio Mac: {Controller.VisualStudioMac.Repository.Uri}/compare/{info.OldVSMSha}...{info.NewVSMSha}");
 			return string.Join ("\r\n", lines);
 		}
 	}

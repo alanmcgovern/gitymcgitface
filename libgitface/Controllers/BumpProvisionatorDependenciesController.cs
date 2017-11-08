@@ -16,6 +16,8 @@ namespace libgitface
 		public string OldMacUrl;
 		public string OldIosSha;
 		public string OldIosUrl;
+		public string OldVSMSha;
+		public string OldVSMUrl;
 
 		public string NewAndroidSha;
 		public string NewAndroidUrl;
@@ -23,6 +25,8 @@ namespace libgitface
 		public string NewMacUrl;
 		public string NewIosSha;
 		public string NewIosUrl;
+		public string NewVSMSha;
+		public string NewVSMUrl;
 	}
 
 	public class BumpProvisionatorDependenciesController
@@ -30,10 +34,12 @@ namespace libgitface
 		const string AndroidPrefix = "xamarin.android";
 		const string IosPrefix = "xamarin.ios";
 		const string MacPrefix = "xamarin.mac";
+		const string VisualStudioMacPrefix = "VisualStudioForMac";
 
 		static readonly Uri DesignerUri = new Uri ("https://github.com/xamarin/designer");
 		static readonly Uri MonoDroidUri = new Uri ("https://github.com/xamarin/monodroid");
 		static readonly Uri MacIosUri = new Uri ("https://github.com/xamarin/xamarin-macios");
+		static readonly Uri VisualStudioMacUri = new Uri ("https://github.com/mono/monodevelop");
 
 		public GitClient Designer {
 			get;
@@ -47,6 +53,10 @@ namespace libgitface
 			get;
 		}
 
+		public GitClient VisualStudioMac {
+			get;
+		}
+
 		public string ProvisionatorFile => "bot-provisioning/dependencies.csx";
 
 		public BumpProvisionatorDependenciesController (GitClient client)
@@ -54,6 +64,7 @@ namespace libgitface
 			Designer = client.WithRepository (new Repository (DesignerUri));
 			MacIos = client.WithRepository (new Repository (MacIosUri));
 			MonoDroid = client.WithRepository (new Repository (MonoDroidUri));
+			VisualStudioMac = client.WithRepository (new Repository (VisualStudioMacUri));
 		}
 
 		/// <summary>
@@ -69,40 +80,34 @@ namespace libgitface
 			info.OldAndroidUrl = info.NewAndroidUrl = GetUrl (AndroidPrefix, info.OldDependenciesCsx);
 			info.OldIosUrl = info.NewIosUrl = GetUrl (IosPrefix, info.OldDependenciesCsx);
 			info.OldMacUrl = info.NewMacUrl = GetUrl (MacPrefix, info.OldDependenciesCsx);
+			info.OldVSMUrl = info.NewVSMUrl = GetUrl (VisualStudioMacPrefix, info.OldDependenciesCsx);
 
 			info.OldAndroidSha = info.NewAndroidSha = GetSha (info.OldAndroidUrl);
 			info.OldIosSha = info.NewIosSha = GetSha (info.OldIosUrl);
 			info.OldMacSha = info.NewMacSha = GetSha (info.OldMacUrl);
+			info.OldVSMSha = info.NewVSMSha = GetSha (info.OldVSMUrl);
 
-			var statuses = Enumerable.Empty<Octokit.CommitStatus> ();
-			try {
-				var macIosHead = await MacIos.GetHeadSha ();
-				var macIosStatuses = await MacIos.GetLatestStatuses (macIosHead, "PKG-");
-				statuses = statuses.Concat (macIosStatuses);
-			} catch {
-				Console.WriteLine ($"Could not get statuses from {MacIos.Repository}");
-			}
-			try {
-				var androidHead = await MonoDroid.GetHeadSha ();
-				var androidStatuses = await MonoDroid.GetLatestStatuses (androidHead, "PKG-");
-				statuses = statuses.Concat (androidStatuses);
-			} catch {
-				Console.WriteLine ($"Could not get statuses from {MonoDroid.Repository}");
-			}
+			var statuses = Enumerable.Empty<Octokit.CommitStatus> ()
+			                         .Concat (await GetLatestStatuses (MacIos, "PKG-"))
+			                         .Concat (await GetLatestStatuses (MonoDroid, "PKG-"))
+			                         .Concat (await GetLatestStatuses (VisualStudioMac, "DMG-"))
+			                         .Where (t => t.State == Octokit.CommitState.Success);
 
 			var newUrls = statuses
-				.Where (t => t.State == Octokit.CommitState.Success)
 				.Select (t => t.TargetUrl.ToString ()).ToArray ();
 
 			info.NewAndroidUrl = newUrls.Where (t => t.Contains (AndroidPrefix)).SingleOrDefault () ?? info.NewAndroidUrl;
 			info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).SingleOrDefault () ?? info.NewIosUrl;
 			info.NewMacUrl = newUrls.Where (t => t.Contains (MacPrefix)).SingleOrDefault () ?? info.NewMacUrl;
+			info.NewVSMUrl = newUrls.Where (t => t.Contains (VisualStudioMacPrefix)).SingleOrDefault () ?? info.NewVSMUrl;
 
 			info.NewAndroidSha = GetSha (info.NewAndroidUrl);
 			info.NewIosSha = GetSha (info.NewIosUrl);
 			info.NewMacSha = GetSha (info.NewMacUrl);
+			info.NewVSMSha = GetSha (info.NewVSMUrl);
 
 			info.NewDependenciesCsx = info.OldDependenciesCsx
+				.Replace (info.OldVSMUrl, info.NewVSMUrl)
 				.Replace (info.OldAndroidUrl, info.NewAndroidUrl)
 				.Replace (info.OldIosUrl, info.NewIosUrl)
 				.Replace (info.OldMacUrl, info.NewMacUrl);
@@ -111,6 +116,17 @@ namespace libgitface
 				return info;
 
 			return null;
+		}
+
+		static async Task<IEnumerable<Octokit.CommitStatus>> GetLatestStatuses (GitClient client, string prefix)
+		{
+			try {
+				var head = await client.GetHeadSha ();
+				return await client.GetLatestStatuses (head, prefix);
+			} catch (Exception ex) {
+				Console.WriteLine ($"Could not get statuses from {client.Repository} due to exception: {ex}");
+				return Enumerable.Empty<Octokit.CommitStatus> ();
+			}
 		}
 
 		static string GetSha (string url)
@@ -125,7 +141,6 @@ namespace libgitface
 			var parts = fileContent.Split (new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 			var line = parts
 				.Select (t => t.Trim ())
-				.Where (t => t.StartsWith ("Item ("))
 				.Where (t => t.Contains ("http://") || t.Contains ("https://"))
 				.Where (t => t.Contains (prefix))
 				.Single ();
