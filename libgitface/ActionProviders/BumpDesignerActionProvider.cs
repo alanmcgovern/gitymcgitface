@@ -10,7 +10,6 @@ namespace libgitface.ActionProviders
 		static readonly Uri DesignerUri = new Uri ("https://github.com/xamarin/designer");
 		static readonly Uri MDAddinsUri = new Uri ("https://github.com/xamarin/md-addins");
 		static readonly Uri VisualStudioUri = new Uri ("https://github.com/xamarin/VisualStudio");
-		static readonly Uri XamarinVSUri = new Uri ("https://github.com/xamarin/xamarinvs");
 
 		GitClient Designer {
 			get;
@@ -24,16 +23,11 @@ namespace libgitface.ActionProviders
 			get;
 		}
 
-		GitClient XamarinVS {
-			get;
-		}
-
 		public BumpDesignerActionProvider (GitClient client)
 		{
 			Designer = client.WithRepository (new Repository (DesignerUri));
 			MDAddins = client.WithRepository (new Repository (MDAddinsUri));
 			VisualStudio = client.WithRepository (new Repository (VisualStudioUri));
-			XamarinVS = client.WithRepository (new Repository (XamarinVSUri));
 		}
 
 		protected override async Task<IAction[]> RefreshActions()
@@ -44,7 +38,7 @@ namespace libgitface.ActionProviders
 			var statuses = (await Designer.GetLatestStatuses (head, "VSIX-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
 
-			foreach (var repoWithExternals in new [] { VisualStudio, XamarinVS }) {
+			foreach (var repoWithExternals in new [] { VisualStudio }) {
 				// Only bump when we have 4 successful VSIX statuses
 				var externalFile = await repoWithExternals.GetFileContent (".external");
 				if (statuses.Length == 4 && !externalFile.Contains (head)) {
