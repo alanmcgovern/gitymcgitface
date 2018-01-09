@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace libgitface.ActionProviders
 {
-	public class BumpDesignerActionProvider : ActionProvider
+	public class BumpIncludedDesignerActionProvider : ActionProvider
 	{
-		static readonly Uri DesignerUri = new Uri ("https://github.com/xamarin/designer");
 		static readonly Uri MDAddinsUri = new Uri ("https://github.com/xamarin/md-addins");
 		static readonly Uri VisualStudioUri = new Uri ("https://github.com/xamarin/VisualStudio");
 
@@ -23,9 +22,9 @@ namespace libgitface.ActionProviders
 			get;
 		}
 
-		public BumpDesignerActionProvider (GitClient client)
+		public BumpIncludedDesignerActionProvider (GitClient client)
 		{
-			Designer = client.WithRepository (new Repository (DesignerUri));
+			Designer = client;
 			MDAddins = client.WithRepository (new Repository (MDAddinsUri));
 			VisualStudio = client.WithRepository (new Repository (VisualStudioUri));
 		}

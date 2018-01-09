@@ -36,7 +36,6 @@ namespace libgitface
 		const string MacPrefix = "xamarin.mac";
 		const string VisualStudioMacPrefix = "VisualStudioForMac";
 
-		static readonly Uri DesignerUri = new Uri ("https://github.com/xamarin/designer");
 		static readonly Uri MonoDroidUri = new Uri ("https://github.com/xamarin/monodroid");
 		static readonly Uri MacIosUri = new Uri ("https://github.com/xamarin/xamarin-macios");
 		static readonly Uri VisualStudioMacUri = new Uri ("https://github.com/mono/monodevelop");
@@ -61,7 +60,7 @@ namespace libgitface
 
 		public BumpProvisionatorDependenciesController (GitClient client)
 		{
-			Designer = client.WithRepository (new Repository (DesignerUri));
+			Designer = client;
 			MacIos = client.WithRepository (new Repository (MacIosUri));
 			MonoDroid = client.WithRepository (new Repository (MonoDroidUri));
 			VisualStudioMac = client.WithRepository (new Repository (VisualStudioMacUri));
@@ -75,7 +74,7 @@ namespace libgitface
 		{
 			var info = new ProvisionatorInfo ();
 
-			info.OldDependenciesCsx = await Designer.GetFileContent (ProvisionatorFile);
+			info.NewDependenciesCsx = info.OldDependenciesCsx = await Designer.GetFileContent (ProvisionatorFile);
 
 			info.OldAndroidUrl = info.NewAndroidUrl = GetUrl (AndroidPrefix, info.OldDependenciesCsx);
 			info.OldIosUrl = info.NewIosUrl = GetUrl (IosPrefix, info.OldDependenciesCsx);
@@ -96,21 +95,28 @@ namespace libgitface
 			var newUrls = statuses
 				.Select (t => t.TargetUrl.ToString ()).ToArray ();
 
-			info.NewAndroidUrl = newUrls.Where (t => t.Contains (AndroidPrefix)).SingleOrDefault () ?? info.NewAndroidUrl;
-			info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).SingleOrDefault () ?? info.NewIosUrl;
-			info.NewMacUrl = newUrls.Where (t => t.Contains (MacPrefix)).SingleOrDefault () ?? info.NewMacUrl;
-			info.NewVSMUrl = newUrls.Where (t => t.Contains (VisualStudioMacPrefix)).SingleOrDefault () ?? info.NewVSMUrl;
+			if (info.OldAndroidUrl != null)
+				info.NewAndroidUrl = newUrls.Where (t => t.Contains (AndroidPrefix)).SingleOrDefault () ?? info.NewAndroidUrl;
+			if (info.OldIosUrl != null)
+				info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).SingleOrDefault () ?? info.NewIosUrl;
+			if (info.OldMacUrl != null)
+				info.NewMacUrl = newUrls.Where (t => t.Contains (MacPrefix)).SingleOrDefault () ?? info.NewMacUrl;
+			if (info.OldVSMUrl != null)
+				info.NewVSMUrl = newUrls.Where (t => t.Contains (VisualStudioMacPrefix)).SingleOrDefault () ?? info.NewVSMUrl;
 
 			info.NewAndroidSha = GetSha (info.NewAndroidUrl);
 			info.NewIosSha = GetSha (info.NewIosUrl);
 			info.NewMacSha = GetSha (info.NewMacUrl);
 			info.NewVSMSha = GetSha (info.NewVSMUrl);
 
-			info.NewDependenciesCsx = info.OldDependenciesCsx
-				.Replace (info.OldVSMUrl, info.NewVSMUrl)
-				.Replace (info.OldAndroidUrl, info.NewAndroidUrl)
-				.Replace (info.OldIosUrl, info.NewIosUrl)
-				.Replace (info.OldMacUrl, info.NewMacUrl);
+			if (info.OldAndroidUrl != info.NewAndroidUrl)
+				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldAndroidUrl, info.NewAndroidUrl);
+			if (info.OldIosUrl != info.NewIosUrl)
+				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldIosUrl, info.NewIosUrl);
+			if (info.OldMacUrl != info.NewMacUrl)
+				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldMacUrl, info.NewMacUrl);
+			if (info.OldVSMUrl != info.NewVSMUrl)
+				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldVSMUrl, info.NewVSMUrl);
 
 			if (info.OldDependenciesCsx != info.NewDependenciesCsx)
 				return info;
@@ -131,7 +137,7 @@ namespace libgitface
 
 		static string GetSha (string url)
 		{
-			return Path.GetFileName (Path.GetDirectoryName (url));
+			return url == null ? null : Path.GetFileName (Path.GetDirectoryName (url));
 		}
 
 		static string GetUrl (string prefix, string fileContent)
@@ -143,7 +149,10 @@ namespace libgitface
 				.Select (t => t.Trim ())
 				.Where (t => t.Contains ("http://") || t.Contains ("https://"))
 				.Where (t => t.Contains (prefix))
-				.Single ();
+				.SingleOrDefault ();
+
+			if (line == null)
+				return null;
 
 			parts = line.Split ('"');
 			if (parts.Length != 3)

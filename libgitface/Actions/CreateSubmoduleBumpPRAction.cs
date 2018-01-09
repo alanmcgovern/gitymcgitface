@@ -8,7 +8,7 @@ namespace libgitface
 {
 	public class CreateSubmoduleBumpPRAction : IAction
 	{
-		string AutoBumpBranchName => $"auto-bump-submodules-{Client.BranchName}";
+		string AutoBumpBranchName => $"{Client.BranchName}-bump-submodules";
 		GitClient Client { get; }
 		SubmoduleInformation[] Submodules { get; }
 
@@ -57,7 +57,7 @@ namespace libgitface
 		string CreateTitleText ()
 		{
 			var submoduleNames = string.Join (", ", Submodules.Select (t => t.Repository.Name));
-			return $"Bumping {submoduleNames}";
+			return $"[{Client.BranchName}] Bump {submoduleNames}";
 		}
 
 		string CreateBodyText ()

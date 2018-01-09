@@ -99,7 +99,7 @@ namespace GityMcGitface
 
 				foreach (var group in Grouping) {
 					if (group.Key.Length == 0) {
-						foreach (var action in group) {
+						foreach (var action in group.OrderBy (t => t.ShortDescription)) {
 							var menuItem = new NSMenuItem (action.ShortDescription);
 							menuItem.ToolTip = action.Tooltip;
 							menuItem.Activated += (sender, e) => action.Execute ();

@@ -26,4 +26,10 @@ Global
 		{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}.Release|x86.ActiveCfg = Release|Any CPU
 		{E2A0CCF4-CC84-4B93-9332-B8BD0291EFBE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.FileWidth = 80
+		$1.scope = text/plain
+	EndGlobalSection
 EndGlobal

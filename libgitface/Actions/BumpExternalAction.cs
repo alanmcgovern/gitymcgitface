@@ -6,7 +6,7 @@ namespace libgitface
 {
 	public class BumpExternalAction : IAction
 	{
-		string AutoBumpBranchName => $"auto-bump-designer-external-{Client.BranchName}";
+		string AutoBumpBranchName => $"{Client.BranchName}-bump-designer";
 		public string[] Grouping { get; }
 		public string ShortDescription => $"Bump included designer ({Client.Repository.Name}/{Client.BranchName})";
 		public string Tooltip => $"Bump {External.Repository.Label} reference inside {Client.Repository.Label}";
@@ -40,7 +40,7 @@ namespace libgitface
 			if (UsePullRequest && await Client.BranchExists (AutoBumpBranchName))
 				await Client.DeleteBranch (AutoBumpBranchName);
 
-			var title = $"Bump {External.Repository.Label}";
+			var title = $"[{Client.BranchName}] Bump {External.Repository.Label}";
 			var body = $"{External.Repository.Uri}/compare/{externalOldSha}...{externalHead}";
 
 			// Update the content on a branch
@@ -53,8 +53,9 @@ namespace libgitface
 			await client.UpdateFileContent (title, body, ".external", externalFile);
 
 			// Issue the PullRequest against the original branch
-			if (UsePullRequest)
+			if (UsePullRequest) {
 				await Client.CreatePullRequest (AutoBumpBranchName, title, body);
+			}
 		}
 
 		string UpdateExternal (string content, string newSha, out string oldSha)

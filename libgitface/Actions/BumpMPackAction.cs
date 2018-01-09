@@ -6,7 +6,7 @@ namespace libgitface
 {
 	public class BumpMDAddinsMPackAction : IAction
 	{
-		string AutoBumpBranchName => $"auto-bump-designer-external-{MDAddinsClient.BranchName}";
+		string AutoBumpBranchName => $"{MDAddinsClient.BranchName}-bump-designer";
 		public string ShortDescription => $"Bump included designer ({MDAddinsClient.Repository.Name}/{MDAddinsClient.BranchName})";
 		public string[] Grouping { get; }
 		public string Tooltip => $"Bump {DesignerExternal.Repository.Label} reference inside {MDAddinsClient.Repository.Label}";
@@ -43,7 +43,7 @@ namespace libgitface
 			if (UsePullRequest && await MDAddinsClient.BranchExists (AutoBumpBranchName))
 				await MDAddinsClient.DeleteBranch (AutoBumpBranchName);
 
-			var title = $"Bump {DesignerExternal.Repository.Label}";
+			var title = $"[{MDAddinsClient.BranchName}] Bump {DesignerExternal.Repository.Label}";
 			var body = $"{DesignerExternal.Repository.Uri}/compare/{designerCurrentSha}...{designerHeadSha}";
 
 			// Update the content on a branch

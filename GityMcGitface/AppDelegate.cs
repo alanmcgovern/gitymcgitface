@@ -36,16 +36,24 @@ namespace GityMcGitface
 	[Register("AppDelegate")]
 	public class AppDelegate : NSApplicationDelegate
 	{
+		static readonly libgitface.Repository DesignerRepository = new libgitface.Repository (new Uri ("https://github.com/xamarin/designer"));
+		static readonly libgitface.Repository SimulatorRepository = new libgitface.Repository (new Uri ("https://github.com/xamarin/ios-sim-sharp"));
+
 		ApplicationIconActionCenter ActionCentre {
 			get;
 		}
 
-		public string[] Branches => new string[] { "master", "d15-5" };
+		public string[] Branches => new string[] {
+			"master",
+			"d15-6",
+			"d15-5",
+		};
 
 		ProductHeaderValue Product => new ProductHeaderValue ("gity-mc-gitface");
 
-		libgitface.Repository[] Repositories => new [] {
-			new libgitface.Repository (new Uri ("https://github.com/xamarin/designer"))
+		libgitface.Repository[] Repositories { get; } = new [] {
+			DesignerRepository,
+			SimulatorRepository,
 		};
 
 		public AppDelegate()
@@ -67,21 +75,20 @@ namespace GityMcGitface
 			foreach (var repository in Repositories) {
 				foreach (var branch in Branches) {
 					ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (baseClient.WithBranch (branch).WithRepository (repository)));
+					ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch).WithRepository (repository)));
 				}
 			}
 
 			// For each tracked branch we should make sure the latest designer commit is integrated with VS and XS.
-			// We should also ensure the latest Xamarin.iOS and Xamarin.Mac is included with the designer.
 			foreach (var branch in Branches) {
-				ActionCentre.ActionProviders.Add (new BumpDesignerActionProvider (baseClient.WithBranch (branch)));
-				ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch)));
+				ActionCentre.ActionProviders.Add (new BumpIncludedDesignerActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 			}
 
 			// For each tracked repository we should keep tabs on open PRs
-			foreach (var repository in Repositories) {
-				ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (baseClient.WithRepository (repository), CancellationToken.None));
-				ActionCentre.ActionProviders.Add (new VSMBuddyTestActionProvider (baseClient.WithRepository (repository), new Downloader ()));
-			}
+			//foreach (var repository in Repositories) {
+			//	ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (baseClient.WithRepository (repository), CancellationToken.None));
+			//	ActionCentre.ActionProviders.Add (new VSMBuddyTestActionProvider (baseClient.WithRepository (repository), new Downloader ()));
+			//}
 
 			ActionCentre.Refresh ();
 		}

@@ -9,7 +9,7 @@ namespace libgitface
 {
 	public class BumpProvisionatorDependenciesAction : IAction
 	{
-		string AutoBumpBranchName => $"auto-bump-provisionator-{Client.BranchName}";
+		string AutoBumpBranchName => $"{Client.BranchName}-bump-provisionator";
 
 		public string[] Grouping { get; }
 		public string ShortDescription { get; }
@@ -66,7 +66,7 @@ namespace libgitface
 				products.Add ("Xamarin.Mac");
 			if (info.NewVSMSha != info.OldVSMSha)
 				products.Add ("VisualStudioMac");
-			return $"Bump {string.Join (", ", products)}.";
+			return $"[{Client.BranchName}] Bump {string.Join (", ", products)}.";
 		}
 
 		string CreateBodyText (ProvisionatorInfo info)
