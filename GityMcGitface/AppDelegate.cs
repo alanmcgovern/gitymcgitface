@@ -82,6 +82,7 @@ namespace GityMcGitface
 			// For each tracked branch we should make sure the latest designer commit is integrated with VS and XS.
 			foreach (var branch in Branches) {
 				ActionCentre.ActionProviders.Add (new BumpIncludedDesignerActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
+				ActionCentre.ActionProviders.Add (new BumpVSMRoslynActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 			}
 
 			// For each tracked repository we should keep tabs on open PRs
