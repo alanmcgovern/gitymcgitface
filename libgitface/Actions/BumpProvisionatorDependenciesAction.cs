@@ -21,12 +21,12 @@ namespace libgitface
 			get;
 		}
 
-		public BumpProvisionatorDependenciesAction (BumpProvisionatorDependenciesController controller, ProvisionatorInfo info, params string[] grouping)
+		public BumpProvisionatorDependenciesAction (BumpProvisionatorDependenciesController controller, Tuple<ProvisionatorProfile, ProvisionatorProfile> info, params string[] grouping)
 		{
 			Controller = controller;
 			Grouping = grouping;
 			ShortDescription = $"Bump provisionator ({Client.Repository.Name}/{Client.BranchName})";
-			Tooltip = CreateTitleText (info);
+			Tooltip = CreateTitleText (info.Item1, info.Item2);
 		}
 
 		public async void Execute()
@@ -36,8 +36,8 @@ namespace libgitface
 				if (info == null)
 					return;
 
-				var title = CreateTitleText (info);
-				var body = CreateBodyText (info);
+				var title = CreateTitleText (info.Item1, info.Item2);
+				var body = CreateBodyText (info.Item1, info.Item2);
 
 				// Delete the old branch if there is one.
 				if (await Client.BranchExists (AutoBumpBranchName))
@@ -46,7 +46,7 @@ namespace libgitface
 				// Update the content on a branch
 				var head = await Client.GetHeadSha ();
 				var client = await Client.CreateBranch (AutoBumpBranchName, head);
-				await client.UpdateFileContent (title, body, Controller.ProvisionatorFile, info.NewDependenciesCsx);
+				await client.UpdateFileContent (title, body, Controller.ProvisionatorFile, info.Item2.Content);
 
 				// Issue the PullRequest against the original branch
 				await Client.CreatePullRequest (AutoBumpBranchName, title, body);
@@ -55,31 +55,25 @@ namespace libgitface
 			}
 		}
 
-		string CreateTitleText (ProvisionatorInfo info)
+		string CreateTitleText (ProvisionatorProfile oldProfile, ProvisionatorProfile newProfile)
 		{
 			var products = new List<string> ();
-			if (info.NewAndroidSha != info.OldAndroidSha)
-				products.Add ("Xamarin.Android");
-			if (info.NewIosSha != info.OldIosSha)
-				products.Add ("Xamarin.iOS");
-			if (info.NewMacSha != info.OldMacSha)
-				products.Add ("Xamarin.Mac");
-			if (info.NewVSMSha != info.OldVSMSha)
-				products.Add ("VisualStudioMac");
+			for (int i = 0; i < oldProfile.Dependencies.Count; i ++) {
+				if (oldProfile.Dependencies [i].GitSha != newProfile.Dependencies [i].GitSha)
+					products.Add (oldProfile.Dependencies [i].Name);
+			}
 			return $"[{Client.BranchName}] Bump {string.Join (", ", products)}.";
 		}
 
-		string CreateBodyText (ProvisionatorInfo info)
+		string CreateBodyText (ProvisionatorProfile oldProfile, ProvisionatorProfile newProfile)
 		{
 			var lines = new List<string> ();
-			if (info.NewAndroidSha != info.OldAndroidSha)
-				lines.Add ($"Xamarin.Android: {Controller.MonoDroid.Repository.Uri}/compare/{info.OldAndroidSha}...{info.NewAndroidSha}");
-			if (info.NewIosSha != info.OldIosSha)
-				lines.Add ($"Xamarin.iOS: {Controller.MacIos.Repository.Uri}/compare/{info.OldIosSha}...{info.NewIosSha}");
-			if (info.NewMacSha != info.OldMacSha)
-				lines.Add ($"Xamarin.Mac: {Controller.MacIos.Repository.Uri}/compare/{info.OldMacSha}...{info.NewMacSha}");
-			if (info.NewVSMSha != info.OldVSMSha)
-				lines.Add ($"Visual Studio Mac: {Controller.VisualStudioMac.Repository.Uri}/compare/{info.OldVSMSha}...{info.NewVSMSha}");
+			for (int i = 0; i < oldProfile.Dependencies.Count; i ++) {
+				var oldDep = oldProfile.Dependencies [i];
+				var newDep = newProfile.Dependencies [i];
+				if (newDep.GitSha != oldDep.GitSha)
+					lines.Add ($"{oldDep.Name}: {oldDep.GitHubUrl}/compare/{oldDep.GitSha}...{newDep.GitSha}");
+			}
 			return string.Join ("\r\n", lines);
 		}
 	}

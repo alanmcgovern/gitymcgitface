@@ -6,138 +6,82 @@ using System.Threading.Tasks;
 
 namespace libgitface
 {
-	public class ProvisionatorInfo {
-		public string OldDependenciesCsx;
-		public string NewDependenciesCsx;
+	public class Dependency
+	{
+		public Uri GitHubUrl { get; }
+		public string GitSha { get; }
+		public string InstallerPrefix { get;  }
+		public string InstallerUrl { get;  }
+		public string Name { get; }
+		public string Prefix { get; }
 
-		public string OldAndroidSha;
-		public string OldAndroidUrl;
-		public string OldMacSha;
-		public string OldMacUrl;
-		public string OldIosSha;
-		public string OldIosUrl;
-		public string OldVSMSha;
-		public string OldVSMUrl;
+		public Dependency (string name, string prefix, Uri githubUrl, string installerPrefix)
+			: this (name, prefix, githubUrl, installerPrefix, null, null)
+		{
+		}
 
-		public string NewAndroidSha;
-		public string NewAndroidUrl;
-		public string NewMacSha;
-		public string NewMacUrl;
-		public string NewIosSha;
-		public string NewIosUrl;
-		public string NewVSMSha;
-		public string NewVSMUrl;
+		public Dependency (string name, string prefix, Uri githubUrl, string installerPrefix, string installerUrl, string gitSha)
+		{
+			Name = name;
+			Prefix = prefix;
+			GitHubUrl = githubUrl;
+			InstallerPrefix = installerPrefix;
+			InstallerUrl = installerUrl;
+			GitSha = gitSha;
+		}
+
+		public Dependency WithUrl (string installerUrl)
+		{
+			var gitSha = Path.GetFileName (Path.GetDirectoryName (installerUrl));
+			return new Dependency (Name, Prefix, GitHubUrl, InstallerPrefix, installerUrl, gitSha);
+		}
 	}
 
-	public class BumpProvisionatorDependenciesController
+	public class ProvisionatorProfile {
+		public string Content { get; }
+		public IReadOnlyList<Dependency> Dependencies { get; }
+
+		public ProvisionatorProfile (string content, IEnumerable<Dependency> dependencies)
+		{
+			Content = content;
+			Dependencies = dependencies.OrderBy (t => t.Name).ToArray ();
+		}
+
+		public ProvisionatorProfile WithDependency (Dependency dependency)
+		{
+			var deps = new List<Dependency> (Dependencies);
+			var oldDep = deps.First (t => t.Name == dependency.Name);
+			deps.Remove (oldDep);
+			deps.Add (dependency);
+
+			var content = Content.Replace (oldDep.InstallerUrl, dependency.InstallerUrl);
+			return new ProvisionatorProfile (content, deps);
+		}
+	}
+
+	public class ProvisionatorProfileParser
 	{
-		const string AndroidPrefix = "xamarin.android";
-		const string IosPrefix = "xamarin.ios";
-		const string MacPrefix = "xamarin.mac";
-		const string VisualStudioMacPrefix = "VisualStudioForMac";
-
-		static readonly Uri MonoDroidUri = new Uri ("https://github.com/xamarin/monodroid");
-		static readonly Uri MacIosUri = new Uri ("https://github.com/xamarin/xamarin-macios");
-		static readonly Uri VisualStudioMacUri = new Uri ("https://github.com/mono/monodevelop");
-
-		public GitClient Designer {
-			get;
-		}
-
-		public GitClient MacIos {
-			get;
-		}
-
-		public GitClient MonoDroid {
-			get;
-		}
-
-		public GitClient VisualStudioMac {
-			get;
-		}
-
-		public string ProvisionatorFile => "bot-provisioning/dependencies.csx";
-
-		public BumpProvisionatorDependenciesController (GitClient client)
-		{
-			Designer = client;
-			MacIos = client.WithRepository (new Repository (MacIosUri));
-			MonoDroid = client.WithRepository (new Repository (MonoDroidUri));
-			VisualStudioMac = client.WithRepository (new Repository (VisualStudioMacUri));
-		}
-
 		/// <summary>
-		/// Returns null if no dependency needs updating, otherwise returns the new content for the `bot-provisioning/dependencies.csx` file.
+		/// Name/Identifier pairs to match the product name with the name embedded in the installer files
 		/// </summary>
-		/// <returns>The bump dependencies.</returns>
-		public async Task<ProvisionatorInfo> TryBumpDependencies ()
+		static readonly Dependency[] KnownDependencies = new [] {
+			new Dependency ("Mono",              "MonoFramework",      new Uri ("https://github.com/mono/mono"),              "PKG-"),
+			new Dependency ("Xamarin.Android",   "xamarin.android",    new Uri ("https://github.com/xamarin/monodroid"),      "PKG-"),
+			new Dependency ("Xamarin.iOS",       "xamarin.ios",        new Uri ("https://github.com/xamarin/xamarin-macios"), "PKG-"),
+			new Dependency ("xamarin.Mac",       "xamarin.mac",        new Uri ("https://github.com/xamarin/xamarin-macios"), "PKG-"),
+			new Dependency ("Visual Studio Mac", "VisualStudioForMac", new Uri ("https://github.com/mono/monodevelop"),       "DMG-"),
+		};
+
+		public static ProvisionatorProfile Parse (string content)
 		{
-			var info = new ProvisionatorInfo ();
-
-			info.NewDependenciesCsx = info.OldDependenciesCsx = await Designer.GetFileContent (ProvisionatorFile);
-
-			info.OldAndroidUrl = info.NewAndroidUrl = GetUrl (AndroidPrefix, info.OldDependenciesCsx);
-			info.OldIosUrl = info.NewIosUrl = GetUrl (IosPrefix, info.OldDependenciesCsx);
-			info.OldMacUrl = info.NewMacUrl = GetUrl (MacPrefix, info.OldDependenciesCsx);
-			info.OldVSMUrl = info.NewVSMUrl = GetUrl (VisualStudioMacPrefix, info.OldDependenciesCsx);
-
-			info.OldAndroidSha = info.NewAndroidSha = GetSha (info.OldAndroidUrl);
-			info.OldIosSha = info.NewIosSha = GetSha (info.OldIosUrl);
-			info.OldMacSha = info.NewMacSha = GetSha (info.OldMacUrl);
-			info.OldVSMSha = info.NewVSMSha = GetSha (info.OldVSMUrl);
-
-			var statuses = Enumerable.Empty<Octokit.CommitStatus> ()
-			                         .Concat (await GetLatestStatuses (MacIos, "PKG-"))
-			                         .Concat (await GetLatestStatuses (MonoDroid, "PKG-"))
-			                         .Concat (await GetLatestStatuses (VisualStudioMac, "DMG-"))
-			                         .Where (t => t.State == Octokit.CommitState.Success);
-
-			var newUrls = statuses
-				.Select (t => t.TargetUrl.ToString ()).ToArray ();
-
-			if (info.OldAndroidUrl != null)
-				info.NewAndroidUrl = newUrls.Where (t => t.Contains (AndroidPrefix)).SingleOrDefault () ?? info.NewAndroidUrl;
-			if (info.OldIosUrl != null)
-				info.NewIosUrl = newUrls.Where (t => t.Contains (IosPrefix)).SingleOrDefault () ?? info.NewIosUrl;
-			if (info.OldMacUrl != null)
-				info.NewMacUrl = newUrls.Where (t => t.Contains (MacPrefix)).SingleOrDefault () ?? info.NewMacUrl;
-			if (info.OldVSMUrl != null)
-				info.NewVSMUrl = newUrls.Where (t => t.Contains (VisualStudioMacPrefix)).SingleOrDefault () ?? info.NewVSMUrl;
-
-			info.NewAndroidSha = GetSha (info.NewAndroidUrl);
-			info.NewIosSha = GetSha (info.NewIosUrl);
-			info.NewMacSha = GetSha (info.NewMacUrl);
-			info.NewVSMSha = GetSha (info.NewVSMUrl);
-
-			if (info.OldAndroidUrl != info.NewAndroidUrl)
-				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldAndroidUrl, info.NewAndroidUrl);
-			if (info.OldIosUrl != info.NewIosUrl)
-				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldIosUrl, info.NewIosUrl);
-			if (info.OldMacUrl != info.NewMacUrl)
-				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldMacUrl, info.NewMacUrl);
-			if (info.OldVSMUrl != info.NewVSMUrl)
-				info.NewDependenciesCsx = info.NewDependenciesCsx.Replace (info.OldVSMUrl, info.NewVSMUrl);
-
-			if (info.OldDependenciesCsx != info.NewDependenciesCsx)
-				return info;
-
-			return null;
-		}
-
-		static async Task<IEnumerable<Octokit.CommitStatus>> GetLatestStatuses (GitClient client, string prefix)
-		{
-			try {
-				var head = await client.GetHeadSha ();
-				return await client.GetLatestStatuses (head, prefix);
-			} catch (Exception ex) {
-				Console.WriteLine ($"Could not get statuses from {client.Repository} due to exception: {ex}");
-				return Enumerable.Empty<Octokit.CommitStatus> ();
+			var dependencies = new List<Dependency> ();
+			foreach (var dependency in KnownDependencies) {
+				var url = GetUrl (dependency.Prefix, content);
+				if (url != null) {
+					dependencies.Add (dependency.WithUrl (url));
+				}
 			}
-		}
-
-		static string GetSha (string url)
-		{
-			return url == null ? null : Path.GetFileName (Path.GetDirectoryName (url));
+			return new ProvisionatorProfile (content, dependencies);
 		}
 
 		static string GetUrl (string prefix, string fileContent)
@@ -161,5 +105,70 @@ namespace libgitface
 			// The url should be the middle part :)
 			return parts [1];
 		}
+
+	}
+
+	public class BumpProvisionatorDependenciesController
+	{
+		public static readonly Dictionary<string, string> MonoBranchMapper = new Dictionary<string, string> {
+			{ "master", "2018-02" },
+			{ "d15-7",  "2017-12" },
+			{ "d15-6", "2017-10" }
+		};
+
+		public GitClient Designer {
+			get;
+		}
+
+		public string ProvisionatorFile => "bot-provisioning/dependencies.csx";
+
+		public BumpProvisionatorDependenciesController (GitClient client)
+		{
+			Designer = client;
+		}
+
+		/// <summary>
+		/// Returns null if no dependency needs updating, otherwise returns the new content for the `bot-provisioning/dependencies.csx` file.
+		/// </summary>
+		/// <returns>The bump dependencies.</returns>
+		public async Task<Tuple<ProvisionatorProfile, ProvisionatorProfile>> TryBumpDependencies ()
+		{
+			var profileContent = await Designer.GetFileContent (ProvisionatorFile);
+			var profile = ProvisionatorProfileParser.Parse (profileContent);
+
+			var statuses = Enumerable.Empty<Octokit.CommitStatus> ();
+			var githubRepos = profile.Dependencies.Distinct (t => t.GitHubUrl).ToArray ();
+			foreach (var dependency in githubRepos) {
+				var client = Designer.WithRepository (new Repository (dependency.GitHubUrl));
+				if (dependency.Name == "Mono")
+					client = client.WithBranch (MonoBranchMapper [client.BranchName]);
+				statuses = statuses.Concat (await GetLatestStatuses (client, dependency.InstallerPrefix));
+			}
+
+			var newUrls = statuses
+				.Select (t => t.TargetUrl.ToString ())
+				.ToArray ();
+
+			var newProfile = profile;
+			foreach (var dependency in profile.Dependencies) {
+				var newDependency = dependency.WithUrl (newUrls.Where (t => t.Contains (dependency.Prefix)).FirstOrDefault () ?? dependency.InstallerUrl);
+				newProfile = newProfile.WithDependency (newDependency);
+			}
+			if (profile.Content == newProfile.Content)
+				return null;
+			return Tuple.Create (profile, newProfile);
+		}
+
+		static async Task<IEnumerable<Octokit.CommitStatus>> GetLatestStatuses (GitClient client, string prefix)
+		{
+			try {
+				var head = await client.GetHeadSha ();
+				return await client.GetLatestStatuses (head, prefix);
+			} catch (Exception ex) {
+				Console.WriteLine ($"Could not get statuses from {client.Repository} due to exception: {ex}");
+				return Enumerable.Empty<Octokit.CommitStatus> ();
+			}
+		}
+
 	}
 }
