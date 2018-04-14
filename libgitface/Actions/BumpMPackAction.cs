@@ -30,12 +30,16 @@ namespace libgitface
 			var designerHeadSha = await DesignerExternal.GetHeadSha ();
 			var statuses = (await DesignerExternal.GetLatestStatuses (designerHeadSha, "MPACK-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
+			var urls = statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t).ToList ();
+			if (urls.Count == 5)
+				urls.RemoveAt (2);
+
 			// Only bump if we have 4 successful MPACK statuses
-			if (statuses.Length != 4)
+			if (urls.Count != 4)
 				return;
 
 			var currentFile = await MDAddinsClient.GetFileContent ("external-addins/designer/source.txt");
-			var newFile = string.Join ("\n", statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t));
+			var newFile = string.Join ("\n", urls);
 
 			var uri = new Uri (currentFile.Split (new [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First ());
 			var designerCurrentSha = Path.GetFileName (Path.GetDirectoryName (uri.PathAndQuery));

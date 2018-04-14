@@ -51,8 +51,12 @@ namespace libgitface.ActionProviders
 
 			// Only bump when we have 4 successful MPACK statuses
 			var mdaddinsFile = await MDAddins.GetFileContent ("external-addins/designer/source.txt");
-			var newFile = string.Join ("\n", statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t));
-			if (statuses.Length == 4 && mdaddinsFile != newFile) {
+			var urls = statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t).ToList ();
+			if (urls.Count == 5)
+				urls.RemoveAt (2);
+
+			var newFile = string.Join ("\n", urls);
+			if (urls.Count == 4 && mdaddinsFile != newFile) {
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpDirect));
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest));
 			}
