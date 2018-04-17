@@ -68,7 +68,7 @@ namespace libgitface
 			new Dependency ("Mono",              "MonoFramework",      new Uri ("https://github.com/mono/mono"),              "PKG-"),
 			new Dependency ("Xamarin.Android",   "xamarin.android",    new Uri ("https://github.com/xamarin/monodroid"),      "PKG-"),
 			new Dependency ("Xamarin.iOS",       "xamarin.ios",        new Uri ("https://github.com/xamarin/xamarin-macios"), "PKG-"),
-			new Dependency ("xamarin.Mac",       "xamarin.mac",        new Uri ("https://github.com/xamarin/xamarin-macios"), "PKG-"),
+			new Dependency ("Xamarin.Mac",       "xamarin.mac",        new Uri ("https://github.com/xamarin/xamarin-macios"), "PKG-"),
 			new Dependency ("Visual Studio Mac", "VisualStudioForMac", new Uri ("https://github.com/mono/monodevelop"),       "DMG-"),
 		};
 
