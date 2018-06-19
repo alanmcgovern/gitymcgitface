@@ -112,6 +112,7 @@ namespace libgitface
 	{
 		public static readonly Dictionary<string, string> MonoBranchMapper = new Dictionary<string, string> {
 			{ "master", "2018-04" },
+			{ "d15-8", "2018-04" },
 			{ "d15-7",  "2017-12" },
 			{ "d15-6", "2017-10" }
 		};
