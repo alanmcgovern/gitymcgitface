@@ -10,6 +10,10 @@ namespace libgitface.ActionProviders
 		static readonly Uri MDAddinsUri = new Uri ("https://github.com/xamarin/md-addins");
 		static readonly Uri VisualStudioUri = new Uri ("https://github.com/xamarin/VisualStudio");
 
+		static readonly Dictionary<string, string> VSMReleaseBranchesMapping = new Dictionary<string, string> {
+			{ "d15-8", "release-7.6" }
+		};
+
 		GitClient Designer {
 			get;
 		}
@@ -26,6 +30,8 @@ namespace libgitface.ActionProviders
 		{
 			Designer = client;
 			MDAddins = client.WithRepository (new Repository (MDAddinsUri));
+			if (VSMReleaseBranchesMapping.TryGetValue (MDAddins.BranchName, out var mappedBranchName))
+				MDAddins = MDAddins.WithBranch (mappedBranchName);
 			VisualStudio = client.WithRepository (new Repository (VisualStudioUri));
 		}
 
