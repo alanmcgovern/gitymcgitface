@@ -25,7 +25,7 @@ namespace libgitface.ActionProviders
 		public BumpIncludedDesignerActionProvider (GitClient client)
 		{
 			Designer = client;
-			MDAddins = client.WithRepository (new Repository (MDAddinsUri));
+			MDAddins = client.WithRepository (new Repository (MDAddinsUri)).WithBranch (BranchMapper.ToVSMBranch (client.BranchName));
 			VisualStudio = client.WithRepository (new Repository (VisualStudioUri));
 		}
 

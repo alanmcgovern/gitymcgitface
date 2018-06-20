@@ -45,9 +45,7 @@ namespace GityMcGitface
 
 		public string[] Branches => new string[] {
 			"master",
-			"d15-7",
-			"d15-6",
-			//"d15-5",
+			"d15-8",
 		};
 
 		ProductHeaderValue Product => new ProductHeaderValue ("gity-mc-gitface");

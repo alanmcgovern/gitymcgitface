@@ -110,12 +110,6 @@ namespace libgitface
 
 	public class BumpProvisionatorDependenciesController
 	{
-		public static readonly Dictionary<string, string> MonoBranchMapper = new Dictionary<string, string> {
-			{ "master", "2018-04" },
-			{ "d15-7",  "2017-12" },
-			{ "d15-6", "2017-10" }
-		};
-
 		public GitClient Designer {
 			get;
 		}
@@ -141,7 +135,10 @@ namespace libgitface
 			foreach (var dependency in githubRepos) {
 				var client = Designer.WithRepository (new Repository (dependency.GitHubUrl));
 				if (dependency.Name == "Mono")
-					client = client.WithBranch (MonoBranchMapper [client.BranchName]);
+					client = client.WithBranch (BranchMapper.ToMonoBranch (client.BranchName));
+				if (dependency.Name == "Visual Studio Mac")
+					client = client.WithBranch (BranchMapper.ToVSMBranch (client.BranchName));
+
 				statuses = statuses.Concat (await GetLatestStatuses (client, dependency.InstallerPrefix));
 			}
 

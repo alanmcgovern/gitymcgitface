@@ -27,7 +27,7 @@ namespace libgitface
 		public BumpVSMRoslynController (GitClient client)
 		{
 			Designer = client;
-			VisualStudioMac = client.WithRepository (new Repository (VisualStudioMacUri));
+			VisualStudioMac = client.WithRepository (new Repository (VisualStudioMacUri)).WithBranch (BranchMapper.ToVSMBranch (client.BranchName));
 		}
 
 		XElement GetDesignerRoslynElement (XElement element)
