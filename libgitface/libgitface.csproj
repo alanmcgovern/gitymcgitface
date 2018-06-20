@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,5 +14,10 @@
   <ItemGroup>
     <PackageReference Include="Octokit" Version="0.28.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Secrets.cs">
+      <Link>Secrets.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>

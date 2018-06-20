@@ -32,8 +32,39 @@ namespace libgitface
 
 		public Dependency WithUrl (string installerUrl)
 		{
-			var gitSha = Path.GetFileName (Path.GetDirectoryName (installerUrl));
+			var gitSha = GetSha (installerUrl);
+
+			if (gitSha == null) {
+				// Glorious hack!
+				var request = System.Net.WebRequest.CreateHttp (installerUrl);
+				request.AllowAutoRedirect = false;
+				request.Headers.Add ("Authorization", "token " + GityMcGitface.Secrets.GithubToken);
+				var resp = (System.Net.HttpWebResponse) request.GetResponse ();
+				if (resp.StatusCode == System.Net.HttpStatusCode.Redirect) {
+					installerUrl = resp.Headers ["Location"];
+					if (installerUrl.Contains ("?"))
+						installerUrl = installerUrl.Split ('?').First ();
+					gitSha = GetSha (installerUrl);
+				}
+			}
+
 			return new Dependency (Name, Prefix, GitHubUrl, InstallerPrefix, installerUrl, gitSha);
+		}
+
+		static char[] AllowedGitShaCharacters = new [] {
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f'
+		};
+
+		static string GetSha (string url)
+		{
+			return url.Split ('/').Where (hash => {
+				if (hash.Length != 40)
+					return false;
+				foreach (var character in hash)
+					if (!AllowedGitShaCharacters.Contains (character))
+						return false;
+				return true;
+			}).LastOrDefault ();
 		}
 	}
 
