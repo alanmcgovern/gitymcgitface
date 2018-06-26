@@ -169,7 +169,10 @@ namespace libgitface
 					client = client.WithBranch (BranchMapper.ToMonoBranch (client.BranchName));
 				if (dependency.Name == "Visual Studio Mac")
 					client = client.WithBranch (BranchMapper.ToVSMBranch (client.BranchName));
-
+				if (dependency.Name == "Xamarin.iOS" || dependency.Name == "Xamarin.Mac")
+					client = client.WithBranch(BranchMapper.ToXamariniOSBranch (client.BranchName));
+				if (dependency.Name == "Xamarin.Android")
+					client = client.WithBranch(BranchMapper.ToXamarinAndroidBranch(client.BranchName));
 				statuses = statuses.Concat (await GetLatestStatuses (client, dependency.InstallerPrefix));
 			}
 
