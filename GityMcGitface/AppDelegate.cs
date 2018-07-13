@@ -90,6 +90,7 @@ namespace GityMcGitface
 			}
 
 			foreach (var branch in XcodeSupportBranches) {
+				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 				ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 				ActionCentre.ActionProviders.Add (new BumpIncludedDesignerActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 			}
