@@ -9,7 +9,7 @@ namespace libgitface
 			{ "master", "master" },
 			{ "d15-9",  "release-7.7" },
 			{ "d15-8",  "release-7.6" },
-			{ "d15-8-xcode10",  "xcode10" },
+			{ "d15-8-xcode10",  "release-7.6-xcode10" },
 		};
 
 		static readonly Dictionary<string, string> MonoBranchMapper = new Dictionary<string, string> {
