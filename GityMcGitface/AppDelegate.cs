@@ -44,13 +44,9 @@ namespace GityMcGitface
 		}
 
 		public string[] Branches => new string[] {
-			"master",
-			"d15-8",
 			"d15-9",
-		};
-
-		public string[] XcodeSupportBranches = new string[] {
-			"d15-8-xcode10",
+			"d15-8",
+			"master",
 		};
 
 		ProductHeaderValue Product => new ProductHeaderValue ("gity-mc-gitface");
@@ -89,11 +85,6 @@ namespace GityMcGitface
 				ActionCentre.ActionProviders.Add (new BumpVSMRoslynActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 			}
 
-			foreach (var branch in XcodeSupportBranches) {
-				ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
-				ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
-				ActionCentre.ActionProviders.Add (new BumpIncludedDesignerActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
-			}
 			// For each tracked repository we should keep tabs on open PRs
 			//foreach (var repository in Repositories) {
 			//	ActionCentre.ActionProviders.Add (new ReviewPullRequestActionProvider (baseClient.WithRepository (repository), CancellationToken.None));

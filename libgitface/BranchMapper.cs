@@ -9,27 +9,23 @@ namespace libgitface
 			{ "master", "master" },
 			{ "d15-9",  "release-7.7" },
 			{ "d15-8",  "release-7.6" },
-			{ "d15-8-xcode10",  "release-7.6-xcode10" },
 		};
 
 		static readonly Dictionary<string, string> MonoBranchMapper = new Dictionary<string, string> {
 			{ "master", "2018-06" },
 			{ "d15-9",  "2018-06" },
 			{ "d15-8",  "2018-02" },
-			{ "d15-8-xcode10",  "2018-02" },
 		};
 
 		static readonly Dictionary<string, string> XamarinAndroidBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
 			{ "d15-9", "d15-9" },
 			{ "d15-8", "d15-8" },
-			{ "d15-8-xcode10", "d15-8" },
 		};
 		static readonly Dictionary<string, string> XamariniOSBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
 			{ "d15-9", "d15-9" },
 			{ "d15-8", "d15-8" },
-			{ "d15-8-xcode10", "xcode10" },
 		};
 
 
