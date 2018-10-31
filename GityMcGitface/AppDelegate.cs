@@ -44,7 +44,9 @@ namespace GityMcGitface
 		}
 
 		public string[] Branches => new string[] {
+			"d16-0-p1",
 			"d15-9",
+			"d15-8-xcode10-1",
 			"d15-8",
 			"master",
 		};
@@ -53,7 +55,7 @@ namespace GityMcGitface
 
 		libgitface.Repository[] Repositories { get; } = new [] {
 			DesignerRepository,
-			SimulatorRepository,
+			//SimulatorRepository,
 		};
 
 		public AppDelegate()

@@ -26,7 +26,7 @@ namespace libgitface.ActionProviders
 		{
 			Designer = client;
 			MDAddins = client.WithRepository (new Repository (MDAddinsUri)).WithBranch (BranchMapper.ToVSMBranch (client.BranchName));
-			VisualStudio = client.WithRepository (new Repository (VisualStudioUri));
+			VisualStudio = client.WithRepository (new Repository (VisualStudioUri)).WithBranch (BranchMapper.ToVisualStudioBranch (client.BranchName));;
 		}
 
 		protected override async Task<IAction[]> RefreshActions()
