@@ -11,6 +11,8 @@ namespace libgitface
 		public string ShortDescription => $"Bump included designer ({Client.Repository.Name}/{Client.BranchName})";
 		public string Tooltip => $"Bump {External.Repository.Label} reference inside {Client.Repository.Label}";
 
+		public bool AllowPostActions { get; set; }
+
 		GitClient Client {
 			get;
 		}
@@ -54,7 +56,7 @@ namespace libgitface
 
 			// Issue the PullRequest against the original branch
 			if (UsePullRequest) {
-				await Client.CreatePullRequest (AutoBumpBranchName, title, body);
+				await Client.CreateAndOpenPullRequest (AutoBumpBranchName, title, body, openPrInBrowser: AllowPostActions);
 			}
 		}
 

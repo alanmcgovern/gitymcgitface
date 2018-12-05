@@ -10,6 +10,8 @@ namespace libgitface.ActionProviders
 		static readonly Uri MDAddinsUri = new Uri ("https://github.com/xamarin/md-addins");
 		static readonly Uri VisualStudioUri = new Uri ("https://github.com/xamarin/VisualStudio");
 
+		readonly bool allowExternalActions;
+
 		GitClient Designer {
 			get;
 		}
@@ -22,11 +24,12 @@ namespace libgitface.ActionProviders
 			get;
 		}
 
-		public BumpIncludedDesignerActionProvider (GitClient client)
+		public BumpIncludedDesignerActionProvider (GitClient client, bool allowExternalActions = true)
 		{
 			Designer = client;
 			MDAddins = client.WithRepository (new Repository (MDAddinsUri)).WithBranch (BranchMapper.ToVSMBranch (client.BranchName));
-			VisualStudio = client.WithRepository (new Repository (VisualStudioUri)).WithBranch (BranchMapper.ToVisualStudioBranch (client.BranchName));;
+			VisualStudio = client.WithRepository (new Repository (VisualStudioUri)).WithBranch (BranchMapper.ToVisualStudioBranch (client.BranchName));
+			this.allowExternalActions = allowExternalActions;
 		}
 
 		protected override async Task<IAction[]> RefreshActions()
@@ -42,7 +45,7 @@ namespace libgitface.ActionProviders
 				var externalFile = await repoWithExternals.GetFileContent (".external");
 				if (statuses.Length == 4 && !externalFile.Contains (head)) {
 					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpDirect));
-					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpPullRequest));
+					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpPullRequest) { AllowPostActions = allowExternalActions });
 				}
 			}
 
@@ -58,7 +61,7 @@ namespace libgitface.ActionProviders
 			var newFile = string.Join ("\n", urls);
 			if (urls.Count == 4 && mdaddinsFile != newFile) {
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpDirect));
-				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest));
+				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest) { AllowPostActions = allowExternalActions });
 			}
 
 			return actions.ToArray ();

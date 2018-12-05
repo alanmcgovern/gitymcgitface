@@ -29,6 +29,7 @@ namespace libgitface
 		string[] Grouping { get; }
 		string ShortDescription { get; }
 		string Tooltip { get; }
+		bool AllowPostActions { get; set; }
 		void Execute ();
 	}
 }

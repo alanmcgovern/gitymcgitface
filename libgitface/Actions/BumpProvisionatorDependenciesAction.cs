@@ -15,6 +15,8 @@ namespace libgitface
 		public string ShortDescription { get; }
 		public string Tooltip { get; }
 
+		public bool AllowPostActions { get; set; }
+
 		GitClient Client => Controller.Designer;
 
 		BumpProvisionatorDependenciesController Controller {

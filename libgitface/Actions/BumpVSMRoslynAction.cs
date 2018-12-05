@@ -13,6 +13,8 @@ namespace libgitface
 		public string ShortDescription { get; }
 		public string Tooltip { get; }
 
+		public bool AllowPostActions { get; set; }
+
 		BumpVSMRoslynController Controller {
 			get;
 		}
