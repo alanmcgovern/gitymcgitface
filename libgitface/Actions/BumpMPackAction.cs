@@ -15,6 +15,8 @@ namespace libgitface
 		GitClient MDAddinsClient { get; }
 		GitClient DesignerExternal { get; }
 
+		public bool AllowPostActions { get; set; }
+
 		bool UsePullRequest {
 			get { return Grouping.Contains (Groupings.PR); }
 		}
@@ -62,7 +64,7 @@ namespace libgitface
 
 			// Issue the PullRequest against the original branch
 			if (UsePullRequest)
-				await MDAddinsClient.CreatePullRequest (AutoBumpBranchName, title, body);
+				await MDAddinsClient.CreateAndOpenPullRequest (AutoBumpBranchName, title, body, openPrInBrowser: AllowPostActions);
 		}
 	}
 }
