@@ -77,13 +77,14 @@ namespace libgitface
 			return response.Sha;
 		}
 
-		public async Task CreatePullRequest(string branchName, string titleText, string bodyText)
+		public async Task<string> CreatePullRequest(string branchName, string titleText, string bodyText)
 		{
 			var newBranchRef = "refs/heads/" + branchName;
 			var pr = new NewPullRequest (titleText, newBranchRef, BranchName) {
 				Body = bodyText
 			};
-			await CreateClient ().PullRequest.Create (Repository.Owner, Repository.Name, pr);
+			var prResult = await CreateClient ().PullRequest.Create (Repository.Owner, Repository.Name, pr);
+			return prResult.HtmlUrl;
 		}
 
 		public async Task<string> CreateTree (NewTree tree)

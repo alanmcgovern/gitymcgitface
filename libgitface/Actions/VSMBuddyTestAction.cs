@@ -15,6 +15,8 @@ namespace libgitface.Actions
 		public string ShortDescription => $"Buddy test {Client.Repository.Name}/{Pull.Title}";
 		public string Tooltip => $"Buddy test {Pull}";
 
+		public bool AllowPostActions { get; set; }
+
 		public VSMBuddyTestAction (GitClient client, PullRequest pull, IDownloader downloader, params string[] grouping)
 		{
 			Client = client;

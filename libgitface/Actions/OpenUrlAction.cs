@@ -43,6 +43,8 @@ namespace libgitface
 			get; set;
 		}
 
+		public bool AllowPostActions { get; set; }
+
 		public OpenUrlAction (params string[] grouping)
 		{
 			Grouping = grouping;

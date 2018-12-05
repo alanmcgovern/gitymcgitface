@@ -16,6 +16,8 @@ namespace libgitface
 		public string ShortDescription => $"Bump submodules ({Client.Repository.Name}/{Client.BranchName})";
 		public string Tooltip => CreateTitleText ();
 
+		public bool AllowPostActions { get; set; }
+
 		public CreateSubmoduleBumpPRAction (GitClient client, SubmoduleInformation[] submodules, params string[] grouping)
 		{
 			Client = client;
@@ -27,7 +29,7 @@ namespace libgitface
 		{
 			try {
 				var branchName = await CreateBranchWithBump ();
-				await Client.CreatePullRequest (branchName, CreateTitleText (), CreateBodyText ());
+				await Client.CreateAndOpenPullRequest (branchName, CreateTitleText (), CreateBodyText (), openPrInBrowser: AllowPostActions);
 			} catch {
 
 			}
