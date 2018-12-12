@@ -30,6 +30,7 @@ namespace libgitface
 		public string Name { get; }
 		public string Owner { get; }
 		public Uri Uri { get; }
+		public bool HasProvisionator { get; set; }
 
 		public Repository (Uri uri)
 			: this (uri, null)

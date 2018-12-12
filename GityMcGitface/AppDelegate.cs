@@ -38,6 +38,7 @@ namespace GityMcGitface
 	{
 		static readonly libgitface.Repository DesignerRepository = new libgitface.Repository (new Uri ("https://github.com/xamarin/designer"));
 		static readonly libgitface.Repository SimulatorRepository = new libgitface.Repository (new Uri ("https://github.com/xamarin/ios-sim-sharp"));
+		static readonly libgitface.Repository AndroidSdkInstallerRepository = new libgitface.Repository (new Uri ("https://github.com/xamarin/android-sdk-installer")) { HasProvisionator = false };
 
 		ApplicationIconActionCenter ActionCentre {
 			get;
@@ -54,6 +55,7 @@ namespace GityMcGitface
 		libgitface.Repository[] Repositories { get; } = new [] {
 			DesignerRepository,
 			//SimulatorRepository,
+			AndroidSdkInstallerRepository
 		};
 
 		public AppDelegate()
@@ -75,7 +77,8 @@ namespace GityMcGitface
 			foreach (var repository in Repositories) {
 				foreach (var branch in Branches) {
 					ActionCentre.ActionProviders.Add (new SubmoduleAnalyzer (baseClient.WithBranch (branch).WithRepository (repository)));
-					ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch).WithRepository (repository)));
+					if (repository.HasProvisionator)
+						ActionCentre.ActionProviders.Add (new BumpProvisionatorDependenciesActionProvider (baseClient.WithBranch (branch).WithRepository (repository)));
 				}
 			}
 
