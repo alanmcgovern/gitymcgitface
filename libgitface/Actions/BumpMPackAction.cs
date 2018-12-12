@@ -8,7 +8,7 @@ namespace libgitface
 	public class BumpMDAddinsMPackAction : IAction
 	{
 		string AutoBumpBranchName => $"{MDAddinsClient.BranchName}-bump-designer";
-		public string ShortDescription => $"Bump included designer ({MDAddinsClient.Repository.Name}/{MDAddinsClient.BranchName})";
+		public string ShortDescription => $"Bump included designer ({DesignerExternal.BranchName}) in ({MDAddinsClient.Repository.Name}/{MDAddinsClient.BranchName})";
 		public string[] Grouping { get; }
 		public string Tooltip => $"Bump {DesignerExternal.Repository.Label} reference inside {MDAddinsClient.Repository.Label}";
 

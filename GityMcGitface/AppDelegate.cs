@@ -44,11 +44,10 @@ namespace GityMcGitface
 		}
 
 		public string[] Branches => new string[] {
-			"d16-0-p1",
-			"d15-9",
-			"d15-8-xcode10-1",
-			"d15-8",
+			"d16-0",
 			"master",
+			"d16-0-p2",
+			"d15-9",
 		};
 
 		ProductHeaderValue Product => new ProductHeaderValue ("gity-mc-gitface");
