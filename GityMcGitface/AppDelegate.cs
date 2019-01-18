@@ -46,7 +46,6 @@ namespace GityMcGitface
 		public string[] Branches => new string[] {
 			"d16-0",
 			"master",
-			"d16-0-p2",
 			"d15-9",
 		};
 
