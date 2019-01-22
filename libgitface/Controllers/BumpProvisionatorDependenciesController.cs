@@ -182,8 +182,12 @@ namespace libgitface
 
 			var newProfile = profile;
 			foreach (var dependency in profile.Dependencies) {
-				var newDependency = dependency.WithUrl (newUrls.Where (t => t.Contains (dependency.Prefix)).FirstOrDefault () ?? dependency.InstallerUrl);
-				newProfile = newProfile.WithDependency (newDependency);
+				try {
+					var newDependency = dependency.WithUrl(newUrls.Where(t => t.Contains(dependency.Prefix)).FirstOrDefault() ?? dependency.InstallerUrl);
+					newProfile = newProfile.WithDependency(newDependency);
+				} catch (Exception ex) {
+					Console.WriteLine ($"Unexpected exception trying to map back to the original git commit for {dependency.Name}: {ex}");
+				}
 			}
 			if (profile.Content == newProfile.Content)
 				return null;
