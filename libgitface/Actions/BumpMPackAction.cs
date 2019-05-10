@@ -34,11 +34,13 @@ namespace libgitface
 			var statuses = (await DesignerExternal.GetLatestStatuses (designerHeadSha, "MPACK-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
 			var urls = statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t).ToList ();
-			if (urls.Count == 5)
-				urls.RemoveAt (2);
 
 			// Only bump if we have 4 successful MPACK statuses
-			if (urls.Count != 4)
+			var olderBranches = new HashSet<string> {
+				"release-8.0", "release-8.1"
+			};
+			int expectedUrlsCount = olderBranches.Contains (MDAddinsClient.BranchName) ? 4 : 5;
+			if (urls.Count != expectedUrlsCount)
 				return;
 
 			var currentFile = await MDAddinsClient.GetFileContent ("external-addins/designer/source.txt");
