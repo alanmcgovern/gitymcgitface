@@ -82,7 +82,8 @@ namespace GityMcGitface
 
 			// For each tracked branch we should make sure the latest designer commit is integrated with VS and XS.
 			foreach (var branch in Branches) {
-				ActionCentre.ActionProviders.Add (new BumpIncludedDesignerActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
+				var br = branch == "d16-1" ? "d16-1-new-document-model" : branch;
+				ActionCentre.ActionProviders.Add (new BumpIncludedDesignerActionProvider (baseClient.WithBranch (br).WithRepository (DesignerRepository)));
 				ActionCentre.ActionProviders.Add (new BumpVSMRoslynActionProvider (baseClient.WithBranch (branch).WithRepository (DesignerRepository)));
 			}
 

@@ -7,6 +7,7 @@ namespace libgitface
 	{
 		static readonly Dictionary<string, string> VSMBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
+			{ "d16-1-new-document-model",  "release-8.1" },
 			{ "d16-1",  "release-8.1" },
 			{ "d16-0",  "release-8.0" },
 			{ "d15-9",  "release-7.7" },
@@ -34,6 +35,7 @@ namespace libgitface
 		static readonly Dictionary<string, string> VisualStudioBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
 			{ "d16-1",  "d16-1" },
+			{ "d16-1-new-document-model",  "d16-1" },
 			{ "d16-0",  "d16-0" },
 			{ "d15-9",  "d15-9" },
 		};
