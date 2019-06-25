@@ -37,7 +37,8 @@ namespace libgitface.ActionProviders
 			var head = await Designer.GetHeadSha ();
 			var actions = new List<IAction> ();
 
-			var statuses = (await Designer.GetLatestStatuses (head, "VSIX-")).ToArray ();
+			// Visual Studio external repository isn't maintained anymore
+			/*var statuses = (await Designer.GetLatestStatuses (head, "VSIX-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
 
 			foreach (var repoWithExternals in new [] { VisualStudio }) {
@@ -47,19 +48,21 @@ namespace libgitface.ActionProviders
 					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpDirect));
 					actions.Add (new BumpExternalAction (repoWithExternals, Designer, Groupings.BumpPullRequest) { AllowPostActions = allowExternalActions });
 				}
-			}
+			}*/
 
-			statuses = (await Designer.GetLatestStatuses (head, "MPACK-")).ToArray ();
+			var statuses = (await Designer.GetLatestStatuses (head, "MPACK-")).ToArray ();
 			statuses = statuses.Where (t => t.State == Octokit.CommitState.Success).ToArray ();
 
-			// Only bump when we have 4 successful MPACK statuses
+			// Only bump when we have the right number of successful MPACK statuses
+			var olderBranches = new HashSet<string> {
+				"release-8.0", "release-8.1"
+			};
+			int expectedUrlsCount = olderBranches.Contains (MDAddins.BranchName) ? 4 : 5;
 			var mdaddinsFile = await MDAddins.GetFileContent ("external-addins/designer/source.txt");
 			var urls = statuses.Select (t => t.TargetUrl.ToString ()).OrderBy (t => t).ToList ();
-			if (urls.Count == 5)
-				urls.RemoveAt (2);
 
 			var newFile = string.Join ("\n", urls);
-			if (urls.Count == 4 && mdaddinsFile != newFile) {
+			if (urls.Count == expectedUrlsCount && mdaddinsFile != newFile) {
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpDirect));
 				actions.Add (new BumpMDAddinsMPackAction (MDAddins, Designer, Groupings.BumpPullRequest) { AllowPostActions = allowExternalActions });
 			}
