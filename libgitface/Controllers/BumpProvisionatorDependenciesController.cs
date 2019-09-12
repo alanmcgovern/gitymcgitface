@@ -120,11 +120,12 @@ namespace libgitface
 			// Find a line matching this format and extract the URL:
 			// Item ("https://bosstoragemirror.azureedge.net/wrench/macios-mac-master/eb/eb35aaaa38f5cb962430ccbbec811d6b3876fc62/xamarin.mac-4.1.0.124.pkg");
 			var parts = fileContent.Split (new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-			var line = parts
-				.Select (t => t.Trim ())
-				.Where (t => t.Contains ("http://") || t.Contains ("https://"))
-				.Where (t => t.Contains (prefix))
-				.SingleOrDefault ();
+			var lines = parts
+				.Select(t => t.Trim())
+				.Where(t => t.Contains("http://") || t.Contains("https://"))
+				.Where(t => t.Contains(prefix)).ToArray();
+
+			var line = lines.LastOrDefault();
 
 			if (line == null)
 				return null;
