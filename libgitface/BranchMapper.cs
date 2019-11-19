@@ -7,6 +7,7 @@ namespace libgitface
 	{
 		static readonly Dictionary<string, string> VSMBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
+			{ "d16-5",  "release-8.5" },
 			{ "d16-4",  "release-8.4" },
 			{ "d16-3",  "release-8.3" },
 			{ "d16-3-xcode11", "release-8.3-xcode11" },
@@ -20,6 +21,7 @@ namespace libgitface
 
 		static readonly Dictionary<string, string> MonoBranchMapper = new Dictionary<string, string> {
 			{ "master", "2019-02" },
+			{ "d16-5",  "2019-06" },
 			{ "d16-4",  "2019-06" },
 			{ "d16-3",  "2019-02" },
 			{ "d16-3-xcode11", "2019-02" },
@@ -32,6 +34,7 @@ namespace libgitface
 
 		static readonly Dictionary<string, string> XamarinAndroidBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
+			{ "d16-5",  "d16-5" },
 			{ "d16-4",  "d16-4" },
 			{ "d16-3",  "d16-3" },
 			{ "d16-3-xcode11", "d16-3" },
@@ -43,6 +46,7 @@ namespace libgitface
 		};
 		static readonly Dictionary<string, string> XamariniOSBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
+			{ "d16-5",  "d16-5" },
 			{ "d16-4",  "xcode11" },
 			{ "d16-3",  "d16-3" },
 			{ "d16-3-xcode11", "d16-3" },
@@ -54,6 +58,7 @@ namespace libgitface
 		};
 		static readonly Dictionary<string, string> VisualStudioBranchMapper = new Dictionary<string, string> {
 			{ "master", "master" },
+			{ "d16-5",  "d16-5" },
 			{ "d16-4",  "d16-4" },
 			{ "d16-3",  "d16-3" },
 			{ "d16-3-xcode11", "d16-3" },
